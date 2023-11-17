@@ -1,29 +1,26 @@
 package mergesort;
 
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
-
 import static mergesort.Utils.merge;
 
-public class ForkJoin<T extends Comparable<T>> implements MergeSortStrategy<T>{
+public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
 
     protected final int MIN_ARRAY_SIZE;
     protected final int PARALLELISM;
     protected final MergeSortStrategy<T> BASE_CASE_STRATEGY;
 
-    public ForkJoin(int minArraySize, int parallelism, MergeSortStrategy<T> baseCaseStrategy) {
+    public Threaded(int minArraySize, int parallelism, MergeSortStrategy<T> baseCaseStrategy) {
         this.MIN_ARRAY_SIZE = minArraySize;
         this.PARALLELISM = parallelism;
         this.BASE_CASE_STRATEGY = baseCaseStrategy;
     }
 
-    private class MergeSortTask extends RecursiveAction {
+    private class MergeSortTask implements Runnable {
 
         private final T[] arrToSort;
         private final int start;
         private final int end;
 
-        public MergeSortTask(T[] arrToSort, int start, int end) { // interval is [start, end)
+        public MergeSortTask(T[] arrToSort, int start, int end) {
             this.arrToSort = arrToSort;
             this.start = start;
             this.end = end;
@@ -34,7 +31,7 @@ public class ForkJoin<T extends Comparable<T>> implements MergeSortStrategy<T>{
         }
 
         @Override
-        protected void compute() {
+        public void run() {
             if (end - start <= MIN_ARRAY_SIZE) {
                 computeDirectly();
             }
@@ -43,21 +40,35 @@ public class ForkJoin<T extends Comparable<T>> implements MergeSortStrategy<T>{
                 MergeSortTask lowerHalfTask = new MergeSortTask(arrToSort, start, midPoint);
                 MergeSortTask upperHalfTask = new MergeSortTask(arrToSort, midPoint, end);
 
-                invokeAll(lowerHalfTask, upperHalfTask);
+                Thread lowerThread = new Thread(lowerHalfTask);
+                Thread upperThread = new Thread(upperHalfTask);
+
+                lowerThread.start();
+                upperThread.start();
+                try {
+                    lowerThread.join();
+                    upperThread.join();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
                 merge(arrToSort, start, midPoint, end);
             }
         }
     }
 
     public void execute(T[] arrToSort, int start, int end) {
-        MergeSortTask task = new MergeSortTask(arrToSort, start, end);
-        ForkJoinPool pool = new ForkJoinPool(PARALLELISM);
-        pool.execute(task);
-        task.join();
+        Thread startThread = new Thread(new MergeSortTask(arrToSort, start, end));
+        startThread.start();
+        try {
+            startThread.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public T[] execute(T[] arrToSort) {
         execute(arrToSort, 0, arrToSort.length);
         return arrToSort;
     }
+
 }
