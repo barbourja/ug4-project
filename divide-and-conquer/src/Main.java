@@ -2,29 +2,42 @@ import mergesort.ForkJoin;
 import mergesort.MergeSortStrategy;
 import mergesort.Sequential;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Random;
+
 
 public class Main {
     public static void main(String[] args) {
         Random rand = new Random();
-        ArrayList<Integer> listOfInt = new ArrayList<>();
-        for (int i = 0; i < 200000; i++) {
-            listOfInt.add(rand.nextInt(100000));
+        int numElems = 1000000;
+        Integer[] testArr1 = new Integer[numElems];
+        for (int i = 0; i < numElems; i++) {
+            testArr1[i] = rand.nextInt(numElems/2);
         }
+        Integer[] testArr2 = Arrays.copyOf(testArr1, testArr1.length);
 
-        MergeSortStrategy<Integer> strategy = new Sequential<>(25000);
+        int minArraySize = numElems/5;
+        MergeSortStrategy<Integer> sequential = new Sequential<>(minArraySize/4);
         long startTime = System.nanoTime();
-        List<Integer> sortedList = strategy.execute(listOfInt);
+        sequential.execute(testArr1);
         long timeTaken = System.nanoTime() - startTime;
-        System.out.println((timeTaken / 1000000) + " ms");
+        System.out.println((timeTaken/1000000) + " ms");
 
-
-        strategy = new ForkJoin<>(25000, 8, new Sequential<Integer>(25000));
+        MergeSortStrategy<Integer> forkJoin = new ForkJoin<>(minArraySize, 8, sequential);
         startTime = System.nanoTime();
-        sortedList = strategy.execute(listOfInt);
+        forkJoin.execute(testArr2);
         timeTaken = System.nanoTime() - startTime;
-        System.out.println((timeTaken / 1000000) + " ms");
+        System.out.println((timeTaken/1000000) + " ms");
+
+        for (int i = 0; i < testArr1.length - 1; i++) {
+            if (testArr1[i] > testArr1[i + 1]) {
+                System.out.println("testArr1 incorrect!");
+                throw new RuntimeException();
+            }
+            if (testArr2[i] > testArr2[i + 1]) {
+                System.out.println("testArr2 incorrect!");
+                throw new RuntimeException();
+            }
+        }
     }
 }

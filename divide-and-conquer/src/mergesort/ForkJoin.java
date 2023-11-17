@@ -1,9 +1,7 @@
 package mergesort;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.RecursiveAction;
 
 import static mergesort.Utils.merge;
 
@@ -19,40 +17,47 @@ public class ForkJoin<T extends Comparable<T>> implements MergeSortStrategy<T>{
         this.BASE_CASE_STRATEGY = baseCaseStrategy;
     }
 
-    private class MergeSortTask extends RecursiveTask {
+    private class MergeSortTask extends RecursiveAction {
 
-        private final List<T> arrToSort;
+        private final T[] arrToSort;
+        private final int start;
+        private final int end;
 
-        public MergeSortTask(List<T> arrToSort) {
+        public MergeSortTask(T[] arrToSort, int start, int end) { // interval is [start, end)
             this.arrToSort = arrToSort;
+            this.start = start;
+            this.end = end;
         }
 
-        protected List<T> computeDirectly() {
-            return BASE_CASE_STRATEGY.execute(arrToSort);
+        protected void computeDirectly() {
+            BASE_CASE_STRATEGY.execute(arrToSort, start, end);
         }
 
         @Override
-        protected List<T> compute() {
-            if (arrToSort.size() <= MIN_ARRAY_SIZE) {
-                return computeDirectly();
+        protected void compute() {
+            if (end - start <= MIN_ARRAY_SIZE) {
+                computeDirectly();
             }
             else {
-                int midPoint = arrToSort.size() / 2;
-                MergeSortTask lowerHalfTask = new MergeSortTask(new ArrayList<>(arrToSort.subList(0, midPoint)));
-                MergeSortTask upperHalfTask = new MergeSortTask(new ArrayList<>(arrToSort.subList(midPoint, arrToSort.size())));
+                int midPoint = (start + end) / 2;
+                MergeSortTask lowerHalfTask = new MergeSortTask(arrToSort, start, midPoint);
+                MergeSortTask upperHalfTask = new MergeSortTask(arrToSort, midPoint, end);
 
-                lowerHalfTask.fork();
-                upperHalfTask.fork();
-
-                return merge((List<T>) lowerHalfTask.join(), (List<T>) upperHalfTask.join());
+                invokeAll(lowerHalfTask, upperHalfTask);
+                merge(arrToSort, start, midPoint, end);
             }
         }
     }
 
-    public List<T> execute(List<T> arrToSort) {
-        MergeSortTask mergeTask = new MergeSortTask(arrToSort);
+    public void execute(T[] arrToSort, int start, int end) {
+        MergeSortTask task = new MergeSortTask(arrToSort, start, end);
         ForkJoinPool pool = new ForkJoinPool(PARALLELISM);
-        pool.execute(mergeTask);
-        return (List<T>) mergeTask.join();
+        pool.execute(task);
+        task.join();
+    }
+
+    public T[] execute(T[] arrToSort) {
+        execute(arrToSort, 0, arrToSort.length);
+        return arrToSort;
     }
 }

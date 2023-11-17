@@ -1,45 +1,51 @@
 package mergesort;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Utils {
 
-    public static <T extends Comparable<T>> List<T> merge(List<T> arr1, List<T> arr2) {
-        List<T> mergedList = new ArrayList<>();
-        while (arr1.size() > 0 || arr2.size() > 0) {
-            T arr1Val = arr1.size() > 0 ? arr1.get(0) : null;
-            T arr2Val = arr2.size() > 0 ? arr2.get(0) : null;
+    public static <T extends Comparable<T>> T[] merge(T[] arrToMerge, int start, int mid, int end) { // intervals are [start, mid) and [mid, end)
+        T[] mergedList = (T[]) new Comparable[end - start];
+        int i = start;
+        int j = mid;
+        int k = 0;
+        while (i < mid || j < end) {
+            T arr1Val = i < mid ? arrToMerge[i] : null;
+            T arr2Val = j < end ? arrToMerge[j] : null;
             if (arr1Val == null) { // Array 1 exhausted; add array 2 value to merged list
-                mergedList.add(arr2Val);
-                arr2.remove(0);
+                mergedList[k] = arr2Val;
+                j++;
             }
             else if (arr2Val == null) { // Array 2 exhausted; add array 1 value to merged list
-                mergedList.add(arr1Val);
-                arr1.remove(0);
+                mergedList[k] = arr1Val;
+                i++;
             }
             else if (arr1Val.compareTo(arr2Val) <= 0) { // Array 1 value less than or equal to array 2 value; add array 1 value to merged list
-                mergedList.add(arr1Val);
-                arr1.remove(0);
+                mergedList[k] = arr1Val;
+                i++;
             }
             else {
-                mergedList.add(arr2Val); // Array 2 value less than array 1 value; add array 2 value to merged list
-                arr2.remove(0);
+                mergedList[k] = arr2Val;
+                j++;
             }
+            k++;
         }
-        return mergedList;
+
+        for (int z = 0; z < mergedList.length; z++) {
+            arrToMerge[start + z] = mergedList[z];
+        }
+
+        return arrToMerge;
     }
 
-    public static <T extends Comparable<T>> void insertionSortInPlace(List<T> arrToSort) {
-        for (int i = 1; i < arrToSort.size(); i++){
+    public static <T extends Comparable<T>> void insertionSortInPlace(T[] arrToSort, int start, int end) { // interval is [start, end)
+        for (int i = start + 1; i < end; i++){
             int currPos = i;
-            T currElem = arrToSort.get(currPos);
+            T currElem = arrToSort[currPos];
 
-            while (currPos > 0 && currElem.compareTo(arrToSort.get(currPos - 1)) < 0) {
-                arrToSort.set(currPos, arrToSort.get(currPos - 1));
+            while (currPos > start && currElem.compareTo(arrToSort[currPos - 1]) < 0) {
+                arrToSort[currPos] = arrToSort[currPos - 1];
                 currPos--;
             }
-            arrToSort.set(currPos, currElem);
+            arrToSort[currPos] = currElem;
         }
     }
 }
