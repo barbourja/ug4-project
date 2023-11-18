@@ -1,11 +1,7 @@
-import mergesort.ForkJoin;
-import mergesort.MergeSortStrategy;
-import mergesort.Sequential;
-import mergesort.Threaded;
+package mergesort;
 
 import java.util.Arrays;
 import java.util.Random;
-
 
 public class Main {
     public static void main(String[] args) {
@@ -51,5 +47,7 @@ public class Main {
                 throw new RuntimeException();
             }
         }
+
+
     }
 }
