@@ -8,8 +8,8 @@ public class Utils {
     }
 
     public static int[][] matAdd(int[][] mat1, int[][] mat2) throws IncorrectMatrixDimensions {
-        if (mat1.length != mat2.length || mat1[0].length != mat2[0].length) {
-            throw new Utils.IncorrectMatrixDimensions("mat1 and mat2 must be square matrices sharing same N!");
+        if (mat1.length != mat2.length || mat1.length == 0 || mat1[0].length != mat2[0].length) {
+            throw new Utils.IncorrectMatrixDimensions("mat1 and mat2 must be square matrices sharing same N! (N > 0)");
         }
         int[][] res = new int[mat1.length][mat1[0].length];
         for (int row = 0; row < res.length; row++) {
@@ -21,8 +21,8 @@ public class Utils {
     }
 
     public static int[][] matSub(int[][] mat1, int[][] mat2) throws IncorrectMatrixDimensions {
-        if (mat1.length != mat2.length || mat1[0].length != mat2[0].length) {
-            throw new Utils.IncorrectMatrixDimensions("mat1 and mat2 must be square matrices sharing same N!");
+        if (mat1.length != mat2.length || mat1.length == 0 || mat1[0].length != mat2[0].length) {
+            throw new Utils.IncorrectMatrixDimensions("mat1 and mat2 must be square matrices sharing same N! (N > 0)");
         }
         int[][] res = new int[mat1.length][mat1[0].length];
         for (int row = 0; row < res.length; row++) {
@@ -34,8 +34,8 @@ public class Utils {
     }
 
     public static int[][] matMult(int[][] mat1, int[][] mat2) throws IncorrectMatrixDimensions {
-        if (mat1[0].length != mat2.length) {
-            throw new IncorrectMatrixDimensions("Dimension mismatch between mat1 and mat2!");
+        if (mat1[0].length != mat2.length || mat1.length == 0 || mat1[0].length == 0 || mat2.length == 0 || mat2[0].length == 0) {
+            throw new IncorrectMatrixDimensions("Dimension mismatch between mat1 and mat2! (or a dimension is 0)");
         }
         int[][] res = new int[mat1.length][mat2[0].length];
         for (int row = 0; row < mat1.length; row++) {
@@ -49,24 +49,19 @@ public class Utils {
         return res;
     }
 
-    public static int[][][] calculateStrassensPartials(int[][][] mat1Split, int[][][] mat2Split) throws IncorrectMatrixDimensions {
-        if (mat1Split.length != 4 || mat2Split.length != 4 || mat1Split[0].length != mat1Split[0][0].length
-        || mat2Split[0].length != mat2Split[0][0].length) {
-            throw new IncorrectMatrixDimensions("Must have 8 split squares matrices to calculate Strassen's partial products!");
+    public static int[][] combineStrassensPartials(int[][][] strassensPartials) throws IncorrectMatrixDimensions {
+        if (strassensPartials.length != 7 || strassensPartials[0].length != strassensPartials[0][0].length) {
+            throw new IncorrectMatrixDimensions("Strassen's partials of wrong form! (requires 7 square partial product matrices!)");
         }
-        int split = mat1Split[0].length;
-        int[][][] strassensResult = new int[7][split][split];
-        strassensResult[0] = matMult(mat1Split[0], matSub(mat2Split[1], mat2Split[3]));
-        strassensResult[1] = matMult(matAdd(mat1Split[0], mat1Split[1]), mat2Split[3]);
-        strassensResult[2] = matMult(matAdd(mat1Split[2], mat1Split[3]), mat2Split[0]);
-        strassensResult[3] = matMult(mat1Split[3], matSub(mat2Split[2], mat2Split[0]));
-        strassensResult[4] = matMult(matAdd(mat1Split[0], mat1Split[3]), matAdd(mat2Split[0], mat2Split[3]));
-        strassensResult[5] = matMult(matSub(mat1Split[1], mat1Split[3]), matAdd(mat2Split[2], mat2Split[3]));
-        strassensResult[6] = matMult(matSub(mat1Split[0], mat1Split[2]), matAdd(mat2Split[0], mat2Split[1]));
-        return  strassensResult;
+        int split = strassensPartials[0].length;
+        int[][][] resMats = new int[4][split][split];
+        resMats[0] = matAdd(matSub(matAdd(strassensPartials[4], strassensPartials[3]), strassensPartials[1]), strassensPartials[5]);
+        resMats[1] = matAdd(strassensPartials[0], strassensPartials[1]);
+        resMats[2] = matAdd(strassensPartials[2], strassensPartials[3]);
+        resMats[3] = matSub(matSub(matAdd(strassensPartials[0], strassensPartials[4]), strassensPartials[2]), strassensPartials[6]);
+
+        return combineMat(resMats);
     }
-
-
 
     public static int[][][] splitMat(int[][] mat) throws IncorrectMatrixDimensions {
         if (mat.length % 2 != 0 || mat.length != mat[0].length) {
@@ -95,7 +90,7 @@ public class Utils {
 
     public static int[][] combineMat(int[][][] splitMats) throws IncorrectMatrixDimensions {
         if (splitMats.length != 4 || splitMats[0].length != splitMats[0][0].length) {
-            throw new IncorrectMatrixDimensions("Must be 4 submatrices and they must be square!");
+            throw new IncorrectMatrixDimensions("Must be 4 sub-matrices and they must be square!");
         }
         int split = splitMats[0].length;
         int[][] combinedMat = new int[2 * split][2 * split];
