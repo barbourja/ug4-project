@@ -42,7 +42,7 @@ public class Sequential implements StrassensStrategy{
         if (dimension <= MIN_MATRIX_SIZE) { // base case
             return !zeroPadded ? matMult(mat1, mat2) : dropZeroPad(matMult(mat1, mat2));
         }
-        else { // perform strassen algorithm //TODO
+        else { // perform strassen algorithm
             int[][][] mat1Split = splitMat(mat1);
             int[][][] mat2Split = splitMat(mat2);
 

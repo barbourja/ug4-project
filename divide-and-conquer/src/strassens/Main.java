@@ -3,28 +3,37 @@ package strassens;
 import java.util.Arrays;
 import java.util.Random;
 
-import static strassens.Utils.*;
-
 public class Main {
     public static void main(String[] args) throws Utils.IncorrectMatrixDimensions {
-        int n = 0;
+        int n = 2500;
         Random rand = new Random();
         int[][] mat1 = new int[n][n];
         int[][] mat2 = new int[n][n];
         for (int row = 0; row < n; row++) {
             for (int col = 0; col < n; col++) {
-                mat1[row][col] = rand.nextInt(1000);
-                mat2[row][col] = rand.nextInt(1000);
+                mat1[row][col] = rand.nextInt(100);
+                mat2[row][col] = rand.nextInt(100);
             }
         }
+        int minMatrixSize = n/5;
 
-        StrassensStrategy strategy = new Sequential(2);
-        System.out.println(Arrays.deepToString(matAdd(mat1, mat2)));
-        System.out.println(Arrays.deepToString(matMult(mat1, mat2)));
-        System.out.println(Arrays.deepToString(strategy.execute(mat1, mat2)));
+        StrassensStrategy sequential = new Sequential(minMatrixSize/4);
+        StrassensStrategy forkJoin = new ForkJoin(minMatrixSize, 8, sequential);
 
-        int[][] splitMat = new int[][]{{1,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,16}};
-        System.out.println(Arrays.deepToString(splitMat(splitMat)));
-        System.out.println(Arrays.deepToString(combineMat(splitMat(splitMat))));
+        long startTime = System.nanoTime();
+        int[][] seqResult = sequential.execute(mat1, mat2);
+        long timeTaken = System.nanoTime() - startTime;
+        System.out.println((timeTaken/1000000) + " ms");
+
+        startTime = System.nanoTime();
+        int[][] forkJoinResult = forkJoin.execute(mat1, mat2);
+        timeTaken = System.nanoTime() - startTime;
+        System.out.println((timeTaken/1000000) + " ms");
+
+//        System.out.print(Arrays.deepToString(seqResult));
+//        System.out.print(Arrays.deepToString(forkJoinResult));
+        if (!Arrays.deepEquals(seqResult, forkJoinResult)) {
+            throw new RuntimeException("INCONGRUENT RESULTS!");
+        }
     }
 }
