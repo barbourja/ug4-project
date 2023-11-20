@@ -19,20 +19,29 @@ public class Main {
 
         StrassensStrategy sequential = new Sequential(minMatrixSize/4);
         StrassensStrategy forkJoin = new ForkJoin(minMatrixSize, 8, sequential);
+        StrassensStrategy threaded = new Threaded(minMatrixSize, 8, sequential);
 
+        System.out.println("Executing sequential...");
         long startTime = System.nanoTime();
         int[][] seqResult = sequential.execute(mat1, mat2);
         long timeTaken = System.nanoTime() - startTime;
         System.out.println((timeTaken/1000000) + " ms");
 
+        System.out.println("Executing fork/join...");
         startTime = System.nanoTime();
         int[][] forkJoinResult = forkJoin.execute(mat1, mat2);
         timeTaken = System.nanoTime() - startTime;
         System.out.println((timeTaken/1000000) + " ms");
 
+        System.out.println("Executing threaded...");
+        startTime = System.nanoTime();
+        int[][] threadedResult = threaded.execute(mat1, mat2);
+        timeTaken = System.nanoTime() - startTime;
+        System.out.println((timeTaken/1000000) + " ms");
+
 //        System.out.print(Arrays.deepToString(seqResult));
 //        System.out.print(Arrays.deepToString(forkJoinResult));
-        if (!Arrays.deepEquals(seqResult, forkJoinResult)) {
+        if (!Arrays.deepEquals(seqResult, forkJoinResult) || !Arrays.deepEquals(forkJoinResult, threadedResult)) {
             throw new RuntimeException("INCONGRUENT RESULTS!");
         }
     }
