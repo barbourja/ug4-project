@@ -7,30 +7,50 @@ public class Utils {
         }
     }
 
-    public static int[][] matAdd(int[][] mat1, int[][] mat2) throws IncorrectMatrixDimensions {
+    public static int[][] matAdd(int[][] mat1, int[][] mat2) throws IncorrectMatrixDimensions{
         if (mat1.length != mat2.length || mat1.length == 0 || mat1[0].length != mat2[0].length) {
             throw new Utils.IncorrectMatrixDimensions("mat1 and mat2 must be square matrices sharing same N! (N > 0)");
         }
-        int[][] res = new int[mat1.length][mat1[0].length];
-        for (int row = 0; row < res.length; row++) {
-            for (int col = 0; col < res[0].length; col++) {
+        int n = mat1.length;
+        int[][] res = new int[n][n];
+        matAdd(mat1, mat2, res, 0, 0, n);
+        return res;
+    }
+
+    public static void matAdd(int[][] mat1, int[][] mat2, int[][] res, int row_offset, int col_offset, int size) throws IncorrectMatrixDimensions { // in-place
+        if (mat1.length != mat2.length || mat1.length < size || mat1.length == 0 || mat1[0].length != mat2[0].length
+        || mat1[0].length < size || res.length < size || res[0].length < size) {
+            throw new Utils.IncorrectMatrixDimensions("mat1 and mat2 must be square matrices sharing same N! (N > 0; N >= size)");
+        }
+
+        for (int row = row_offset; row < row_offset + size; row++) {
+            for (int col = col_offset; col < col_offset + size; col++) {
                 res[row][col] = mat1[row][col] + mat2[row][col];
             }
         }
-        return res;
     }
 
     public static int[][] matSub(int[][] mat1, int[][] mat2) throws IncorrectMatrixDimensions {
         if (mat1.length != mat2.length || mat1.length == 0 || mat1[0].length != mat2[0].length) {
             throw new Utils.IncorrectMatrixDimensions("mat1 and mat2 must be square matrices sharing same N! (N > 0)");
         }
-        int[][] res = new int[mat1.length][mat1[0].length];
-        for (int row = 0; row < res.length; row++) {
-            for (int col = 0; col < res[0].length; col++) {
+        int n = mat1.length;
+        int[][] res = new int[n][n];
+        matSub(mat1, mat2, res, 0, 0, n);
+        return res;
+    }
+
+    public static void matSub(int[][] mat1, int[][] mat2, int[][] res, int row_offset, int col_offset, int size) throws IncorrectMatrixDimensions { // in-place
+        if (mat1.length != mat2.length || mat1.length < size || mat1.length == 0 || mat1[0].length != mat2[0].length
+                || mat1[0].length < size || res.length < size || res[0].length < size) {
+            throw new Utils.IncorrectMatrixDimensions("mat1 and mat2 must be square matrices sharing same N! (N > 0; N >= size)");
+        }
+
+        for (int row = row_offset; row < row_offset + size; row++) {
+            for (int col = col_offset; col < col_offset + size; col++) {
                 res[row][col] = mat1[row][col] - mat2[row][col];
             }
         }
-        return res;
     }
 
     public static int[][] matMult(int[][] mat1, int[][] mat2) throws IncorrectMatrixDimensions {

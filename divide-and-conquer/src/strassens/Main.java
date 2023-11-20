@@ -5,7 +5,7 @@ import java.util.Random;
 
 public class Main {
     public static void main(String[] args) throws Utils.IncorrectMatrixDimensions {
-        int n = 2500;
+        int n = 2000;
         Random rand = new Random();
         int[][] mat1 = new int[n][n];
         int[][] mat2 = new int[n][n];
