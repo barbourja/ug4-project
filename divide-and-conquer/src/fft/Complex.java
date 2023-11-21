@@ -1,0 +1,59 @@
+package fft;
+
+public class Complex {
+    private final double real;
+    private final double imaginary;
+
+    public Complex(double real, double imaginary) {
+        this.real = real;
+        this.imaginary = imaginary;
+    }
+
+    public Complex add(Complex other) {
+        return new Complex(real + other.real(), imaginary + other.imaginary());
+    }
+
+    public Complex sub(Complex other) {
+        return new Complex(real - other.real(), imaginary - other.imaginary());
+    }
+
+    public Complex mult(Complex other) {
+        return new Complex(real * other.real() - imaginary * other.imaginary(), real * other.imaginary() + imaginary * other.real());
+    }
+
+    public Complex pow(double n) {
+        return new Complex(Math.pow(this.r(), n) * Math.cos(n * this.theta()), Math.pow(this.r(), n) * Math.sin(n * this.theta()));
+    }
+
+    public double real() {
+        return this.real;
+    }
+
+    public double imaginary() {
+        return this.imaginary;
+    }
+
+    public double r() {
+        return Math.hypot(real, imaginary);
+    }
+
+    public double theta() {
+        return Math.atan2(imaginary, real);
+    }
+
+    public Complex clone() {
+        return new Complex(real, imaginary);
+    }
+
+    public String toString() {
+        if (this.imaginary == 0) {
+            return Double.toString(this.real);
+        }
+        else if (this.real == 0) {
+            return Double.toString(this.imaginary);
+        }
+        else {
+            return this.real + (this.imaginary > 0 ? " + " : " - ") + Math.abs(this.imaginary) + "i";
+        }
+    }
+}
