@@ -1,20 +1,42 @@
 package fft;
 
+import java.util.Random;
+
 public class Main {
 
     public static void main(String[] args) {
-        FFTStrategy strat = new Sequential(2);
-
-        int n = 4;
+        Random rand = new Random();
+        int n = (int) Math.pow(2, 22);
         Complex[] f = new Complex[n];
-        f[0] = new Complex(-0.03480425839330703, 0);
-        f[1] = new Complex(0.07910192950176387, 0);
-        f[2] = new Complex(0.7233322451735928, 0);
-        f[3] = new Complex(0.1659819820667019, 0);
-        Complex[] F = strat.execute(f);
-        for (int i = 0; i < F.length; i++) {
-            System.out.println(F[i].toString());
+        for (int i = 0; i < n; i++) {
+            f[i] = new Complex(rand.nextDouble(), rand.nextDouble());
         }
+        int minSequenceSize = n/1000;
 
+        FFTStrategy sequential = new Sequential(minSequenceSize/4);
+        FFTStrategy forkJoin = new ForkJoin(minSequenceSize, 16, sequential);
+        FFTStrategy threaded = new Threaded(minSequenceSize, 16, sequential);
+
+//        System.out.println("Executing sequential...");
+//        long startTime = System.nanoTime();
+//        Complex[] seqResult = sequential.execute(f);
+//        long timeTaken = System.nanoTime() - startTime;
+//        System.out.println((timeTaken/1000000) + " ms");
+
+        System.out.println("Executing fork/join...");
+        long startTime = System.nanoTime();
+        forkJoin.execute(f);
+        long timeTaken = System.nanoTime() - startTime;
+        System.out.println((timeTaken/1000000) + " ms");
+
+        System.out.println("Executing threaded...");
+        startTime = System.nanoTime();
+        threaded.execute(f);
+        timeTaken = System.nanoTime() - startTime;
+        System.out.println((timeTaken/1000000) + " ms");
+
+//        if (!Arrays.equals(seqResult, forkJoinResult)) {
+//            throw new RuntimeException("INCONGRUENT RESULTS!");
+//        }
     }
 }
