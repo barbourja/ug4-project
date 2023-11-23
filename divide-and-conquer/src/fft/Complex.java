@@ -1,5 +1,7 @@
 package fft;
 
+import java.util.Objects;
+
 public class Complex {
     private final double real;
     private final double imaginary;
@@ -55,5 +57,18 @@ public class Complex {
         else {
             return this.real + (this.imaginary > 0 ? " + " : " - ") + Math.abs(this.imaginary) + "i";
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Complex complex = (Complex) o;
+        return Double.compare(complex.real, real) == 0 && Double.compare(complex.imaginary, imaginary) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(real, imaginary);
     }
 }
