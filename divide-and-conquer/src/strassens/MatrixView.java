@@ -5,8 +5,8 @@ import java.util.Objects;
 public class MatrixView extends Matrix {
 
     private Matrix baseMatrix;
-    private int startRow;
-    private int startCol;
+    private final int START_ROW;
+    private final int START_COl;
     private final int ROWS;
     private final int COLS;
 
@@ -23,8 +23,8 @@ public class MatrixView extends Matrix {
             startCol += this.baseMatrix.getStartCol();
             this.baseMatrix = this.baseMatrix.getUnderlying();
         }
-        this.startRow = startRow;
-        this.startCol = startCol;
+        this.START_ROW = startRow;
+        this.START_COl = startCol;
     }
 
     @Override
@@ -34,7 +34,7 @@ public class MatrixView extends Matrix {
         }
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
-                result.updateValue(baseMatrix.getValue(startRow + row, startCol + col) + other.getValue(row, col), row, col);
+                result.updateValue(baseMatrix.getValue(START_ROW + row, START_COl + col) + other.getValue(row, col), row, col);
             }
         }
         return result;
@@ -47,7 +47,7 @@ public class MatrixView extends Matrix {
         }
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
-                result.updateValue(baseMatrix.getValue(startRow + row, startCol + col) - other.getValue(row, col), row, col);
+                result.updateValue(baseMatrix.getValue(START_ROW + row, START_COl + col) - other.getValue(row, col), row, col);
             }
         }
         return result;
@@ -62,7 +62,7 @@ public class MatrixView extends Matrix {
             for (int col = 0; col < other.getNumCols(); col++) {
                 int res = 0;
                 for (int k = 0; k < other.getNumRows(); k++) {
-                    res += baseMatrix.getValue(startRow + row, startCol + k) * other.getValue(k, col);
+                    res += baseMatrix.getValue(START_ROW + row, START_COl + k) * other.getValue(k, col);
                 }
                 result.updateValue(res, row, col);
             }
@@ -77,19 +77,19 @@ public class MatrixView extends Matrix {
         }
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
-                baseMatrix.updateValue(matrixToCopy.getValue(row, col), startRow + row, startCol + col);
+                baseMatrix.updateValue(matrixToCopy.getValue(row, col), START_ROW + row, START_COl + col);
             }
         }
     }
 
     @Override
     public int getValue(int rowIndex, int colIndex) {
-        return baseMatrix.getValue(startRow + rowIndex, startCol + colIndex);
+        return baseMatrix.getValue(START_ROW + rowIndex, START_COl + colIndex);
     }
 
     @Override
     public void updateValue(int value, int rowIndex, int colIndex) {
-        baseMatrix.updateValue(value, startRow + rowIndex, startCol + colIndex);
+        baseMatrix.updateValue(value, START_ROW + rowIndex, START_COl + colIndex);
     }
 
     @Override
@@ -124,12 +124,12 @@ public class MatrixView extends Matrix {
 
     @Override
     public int getStartRow() {
-        return this.startRow;
+        return this.START_ROW;
     }
 
     @Override
     public int getStartCol() {
-        return this.startCol;
+        return this.START_COl;
     }
 
     @Override
@@ -147,12 +147,12 @@ public class MatrixView extends Matrix {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MatrixView that = (MatrixView) o;
-        return startRow == that.startRow && startCol == that.startCol && ROWS == that.ROWS && COLS == that.COLS && baseMatrix.equals(that.baseMatrix);
+        return START_ROW == that.START_ROW && START_COl == that.START_COl && ROWS == that.ROWS && COLS == that.COLS && baseMatrix.equals(that.baseMatrix);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(baseMatrix, startRow, startCol, ROWS, COLS);
+        return Objects.hash(baseMatrix, START_ROW, START_COl, ROWS, COLS);
     }
 
     @Override
@@ -160,7 +160,7 @@ public class MatrixView extends Matrix {
         StringBuilder printStr = new StringBuilder();
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
-                printStr.append(baseMatrix.getValue(startRow + row, startCol + col)+ " ");
+                printStr.append(baseMatrix.getValue(START_ROW + row, START_COl + col)+ " ");
             }
             printStr.append("\n");
         }
