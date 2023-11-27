@@ -1,5 +1,8 @@
 package strassens;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 public class ConcreteMatrix extends Matrix {
 
     private final int[][] matrix;
@@ -101,8 +104,21 @@ public class ConcreteMatrix extends Matrix {
     }
 
     @Override
-    public int getNumCols() {
-        return COLS;
+    public int getNumCols() {return COLS; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ConcreteMatrix that = (ConcreteMatrix) o;
+        return ROWS == that.ROWS && COLS == that.COLS && Arrays.deepEquals(matrix, that.matrix);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(ROWS, COLS);
+        result = 31 * result + Arrays.deepHashCode(matrix);
+        return result;
     }
 
     @Override
@@ -110,7 +126,7 @@ public class ConcreteMatrix extends Matrix {
         StringBuilder printStr = new StringBuilder();
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
-                printStr.append(matrix[row][col] + " ");
+                printStr.append(matrix[row][col]).append(" ");
             }
             printStr.append("\n");
         }

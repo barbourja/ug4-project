@@ -1,5 +1,7 @@
 package strassens;
 
+import java.util.Objects;
+
 public class MatrixView extends Matrix {
 
     private Matrix baseMatrix;
@@ -140,6 +142,19 @@ public class MatrixView extends Matrix {
     @Override
     public int getNumCols() {
         return COLS;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MatrixView that = (MatrixView) o;
+        return startRow == that.startRow && startCol == that.startCol && ROWS == that.ROWS && COLS == that.COLS && baseMatrix.equals(that.baseMatrix);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(baseMatrix, startRow, startCol, ROWS, COLS);
     }
 
     @Override
