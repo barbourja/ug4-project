@@ -26,10 +26,7 @@ public class SequentialInPlace {
             Matrix tempQuadrant1 = new ConcreteMatrix(new int[mat1.getNumRows()/2][mat1.getNumRows()/2]);
             Matrix tempQuadrant2 = new ConcreteMatrix(new int[mat1.getNumRows()/2][mat1.getNumRows()/2]);
 
-            //BELOW CODE MIGHT WORK
-            ////////////////////////////////
-            // computing strassen partials//
-            ////////////////////////////////
+            // computing strassen partials
             execute(mat1Split[0], mat2Split[1].sub(mat2Split[3], workingQuadrants[0]), workingQuadrants[1], resQuadrants[0]); // p1
             execute(mat1Split[0].add(mat1Split[1], workingQuadrants[0]), mat2Split[3], workingQuadrants[1], resQuadrants[1]); // p2
             execute(mat1Split[2].add(mat1Split[3], workingQuadrants[0]), mat2Split[0], workingQuadrants[1], resQuadrants[2]); // p3

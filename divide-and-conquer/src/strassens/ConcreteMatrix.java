@@ -1,8 +1,8 @@
 package strassens;
 
-public class ConcreteMatrix implements Matrix{
+public class ConcreteMatrix extends Matrix {
 
-    private int[][] matrix;
+    private final int[][] matrix;
     private final int ROWS;
     private final int COLS;
 
@@ -81,32 +81,18 @@ public class ConcreteMatrix implements Matrix{
     }
 
     @Override
-    public boolean dimEquals(Matrix other) {
-        return ROWS == other.getNumRows() && COLS == other.getNumCols();
-    }
-
-    @Override
-    public boolean isSquare() {
-        return ROWS == COLS;
-    }
-
-    @Override
-    public Matrix[] quadrantSplit() {
-        if (!isSquare()) {
-            throw new RuntimeException("Matrix must be square for quadrant split");
-        }
-        int split = ROWS / 2;
-        Matrix[] matSplit = new Matrix[4];
-        matSplit[0] = new MatrixView(this, 0, split - 1, 0, split - 1); // upper left
-        matSplit[1] = new MatrixView(this, 0, split - 1 , split, COLS - 1); // upper right
-        matSplit[2] = new MatrixView(this, split, ROWS - 1, 0, split - 1); // lower left
-        matSplit[3] = new MatrixView(this, split, ROWS - 1, split, COLS - 1); // lower right
-        return matSplit;
-    }
-
-    @Override
     public Matrix getUnderlying() {
         return this;
+    }
+
+    @Override
+    public int getStartRow() {
+        return 0;
+    }
+
+    @Override
+    public int getStartCol() {
+        return 0;
     }
 
     @Override

@@ -1,6 +1,6 @@
 package strassens;
 
-public class MatrixView implements Matrix{
+public class MatrixView extends Matrix {
 
     private Matrix baseMatrix;
     private int startRow;
@@ -121,10 +121,13 @@ public class MatrixView implements Matrix{
         return baseMatrix;
     }
 
+
+    @Override
     public int getStartRow() {
         return this.startRow;
     }
 
+    @Override
     public int getStartCol() {
         return this.startCol;
     }
