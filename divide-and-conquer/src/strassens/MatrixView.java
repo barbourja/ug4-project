@@ -15,18 +15,16 @@ public class MatrixView extends Matrix {
             throw new RuntimeException("Invalid matrix view provided!");
         }
         this.baseMatrix = baseMatrix;
-        this.startRow = startRow;
-        this.startCol = startCol;
         this.ROWS = endRow - startRow + 1;
         this.COLS = endCol - startCol + 1;
 
-        while (!(this.baseMatrix.getUnderlying() instanceof ConcreteMatrix)) { // perform reduction to shorten call chain -> speedup operations
-            MatrixView view = (MatrixView) this.baseMatrix.getUnderlying();
-            this.startRow = this.startRow + view.getStartRow();
-            this.startCol = this.startCol + view.getStartCol();
+        while (!(this.baseMatrix instanceof ConcreteMatrix)) { // perform reduction to shorten call chain -> speedup operations
+            startRow += this.baseMatrix.getStartRow();
+            startCol += this.baseMatrix.getStartCol();
             this.baseMatrix = this.baseMatrix.getUnderlying();
         }
-        this.baseMatrix = this.baseMatrix.getUnderlying();
+        this.startRow = startRow;
+        this.startCol = startCol;
     }
 
     @Override

@@ -21,7 +21,7 @@ public abstract class Matrix {
     }
 
     public Matrix[] quadrantSplit() {
-        if (!isSquare()) {
+        if (!isSquare() || getNumRows() % 2 != 0 || getNumRows() <= 0) {
             throw new RuntimeException("Matrix must be square for quadrant split");
         }
         int split = getNumRows() / 2;

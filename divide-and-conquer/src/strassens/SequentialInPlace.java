@@ -45,8 +45,8 @@ public class SequentialInPlace {
                     .sub(resQuadrants[2], tempQuadrant1)
                     .sub(workingQuadrants[2], tempQuadrant1); // result for resQuadrant[3] stored in tempQuadrant
             resQuadrants[0].updateMatrix(workingQuadrants[3]); // store result for resQuadrant[0], lose p1
-            resQuadrants[3].updateMatrix(tempQuadrant1); // store result for resQuadrant[3], lose p4
             resQuadrants[2].add(resQuadrants[3], resQuadrants[2]); // compute resQuadrant[2] result directly
+            resQuadrants[3].updateMatrix(tempQuadrant1); // store result for resQuadrant[3], lose p4
         }
     }
 }

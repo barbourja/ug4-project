@@ -5,7 +5,7 @@ import java.util.Random;
 public class Main {
     public static void main(String[] args) throws Utils.IncorrectMatrixDimensions {
 
-        int n = 8;
+        int n = 1024;
         Random rand = new Random();
         int[][] mat1 = new int[n][n];
         int[][] mat2 = new int[n][n];
@@ -29,15 +29,13 @@ public class Main {
         System.out.println(timeTaken/1000000 + " ms");
 
         System.out.println("Running strassen in place: ");
-        SequentialInPlace strat = new SequentialInPlace(2);
+        SequentialInPlace strat = new SequentialInPlace(128);
         startTime = System.nanoTime();
         strat.execute(realmat1, realmat2, working, res_strassen);
         timeTaken = System.nanoTime() - startTime;
         System.out.println(timeTaken/1000000 + " ms");
 
         System.out.println(res_direct.equals(res_strassen));
-        System.out.println(res_direct);
-        System.out.println(res_strassen);
 //        int n = 5000;
 //        Random rand = new Random();
 //        int[][] mat1 = new int[n][n];
