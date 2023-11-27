@@ -4,11 +4,9 @@ public class MatrixView implements Matrix{
 
     private Matrix baseMatrix;
     private int startRow;
-    private int endRow;
     private int startCol;
-    private int endCol;
-    private int rows;
-    private int cols;
+    private final int ROWS;
+    private final int COLS;
 
     public MatrixView(Matrix baseMatrix, int startRow, int endRow, int startCol, int endCol) {
         if (startRow < 0 || startCol < 0 || endRow >= baseMatrix.getNumRows() || endCol >= baseMatrix.getNumCols()) {
@@ -17,8 +15,16 @@ public class MatrixView implements Matrix{
         this.baseMatrix = baseMatrix;
         this.startRow = startRow;
         this.startCol = startCol;
-        this.rows = endRow - startRow + 1;
-        this.cols = endCol - startCol + 1;
+        this.ROWS = endRow - startRow + 1;
+        this.COLS = endCol - startCol + 1;
+
+        while (!(this.baseMatrix.getUnderlying() instanceof ConcreteMatrix)) { // perform reduction to shorten call chain -> speedup operations
+            MatrixView view = (MatrixView) this.baseMatrix.getUnderlying();
+            this.startRow = this.startRow + view.getStartRow();
+            this.startCol = this.startCol + view.getStartCol();
+            this.baseMatrix = this.baseMatrix.getUnderlying();
+        }
+        this.baseMatrix = this.baseMatrix.getUnderlying();
     }
 
     @Override
@@ -26,8 +32,8 @@ public class MatrixView implements Matrix{
         if (!this.dimEquals(other)) {
             throw new RuntimeException("Mismatched matrix dimensions");
         }
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
                 result.updateValue(baseMatrix.getValue(startRow + row, startCol + col) + other.getValue(row, col), row, col);
             }
         }
@@ -39,8 +45,8 @@ public class MatrixView implements Matrix{
         if (!this.dimEquals(other)) {
             throw new RuntimeException("Mismatched matrix dimensions");
         }
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
                 result.updateValue(baseMatrix.getValue(startRow + row, startCol + col) - other.getValue(row, col), row, col);
             }
         }
@@ -49,15 +55,16 @@ public class MatrixView implements Matrix{
 
     @Override
     public Matrix mult(Matrix other, Matrix result) {
-        if (cols != other.getNumRows() || result.getNumRows() != rows || result.getNumCols() != other.getNumCols()) {
+        if (COLS != other.getNumRows() || result.getNumRows() != ROWS || result.getNumCols() != other.getNumCols()) {
             throw new RuntimeException("Mismatched matrix dimensions");
         }
-        for (int row = 0; row < rows; row++) {
+        for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < other.getNumCols(); col++) {
-                result.updateValue(0, row, col);
+                int res = 0;
                 for (int k = 0; k < other.getNumRows(); k++) {
-                    result.updateValue(result.getValue(row, col) + baseMatrix.getValue(startRow + row, startCol + k) * other.getValue(k, col), row, col);
+                    res += baseMatrix.getValue(startRow + row, startCol + k) * other.getValue(k, col);
                 }
+                result.updateValue(res, row, col);
             }
         }
         return result;
@@ -68,30 +75,10 @@ public class MatrixView implements Matrix{
         if (!this.dimEquals(matrixToCopy)) {
             throw new RuntimeException("Matrix to copy must have same dimensions");
         }
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
                 baseMatrix.updateValue(matrixToCopy.getValue(row, col), startRow + row, startCol + col);
             }
-        }
-    }
-
-    @Override
-    public void updateRow(int[] values, int rowIndex) {
-        if (values.length != cols) {
-            throw new RuntimeException("Number of values in row must match number of existing columns");
-        }
-        for (int i = 0; i < values.length; i++) {
-            baseMatrix.updateValue(values[i],startRow + rowIndex, startCol + i);
-        }
-    }
-
-    @Override
-    public void updateCol(int[] values, int colIndex) {
-        if (values.length != cols) {
-            throw new RuntimeException("Number of values in col must match number of existing rows");
-        }
-        for (int i = 0; i < values.length; i++) {
-            baseMatrix.updateValue(values[i],startRow + i, startCol + colIndex);
         }
     }
 
@@ -107,12 +94,12 @@ public class MatrixView implements Matrix{
 
     @Override
     public boolean dimEquals(Matrix other) {
-        return rows == other.getNumRows() && cols == other.getNumCols();
+        return ROWS == other.getNumRows() && COLS == other.getNumCols();
     }
 
     @Override
     public boolean isSquare() {
-        return rows == cols;
+        return ROWS == COLS;
     }
 
     @Override
@@ -120,48 +107,43 @@ public class MatrixView implements Matrix{
         if (!isSquare()) {
             throw new RuntimeException("Matrix must be square for quadrant split");
         }
-        int split = rows / 2;
+        int split = ROWS / 2;
         Matrix[] matSplit = new Matrix[4];
         matSplit[0] = new MatrixView(this, 0, split - 1, 0, split - 1); // upper left
-        matSplit[1] = new MatrixView(this, 0, split - 1 , split, cols - 1); // upper right
-        matSplit[2] = new MatrixView(this, split, rows - 1, 0, split - 1); // lower left
-        matSplit[3] = new MatrixView(this, split, rows - 1, split, cols - 1); // lower right
+        matSplit[1] = new MatrixView(this, 0, split - 1 , split, COLS - 1); // upper right
+        matSplit[2] = new MatrixView(this, split, ROWS - 1, 0, split - 1); // lower left
+        matSplit[3] = new MatrixView(this, split, ROWS - 1, split, COLS - 1); // lower right
         return matSplit;
     }
 
     @Override
-    public int[] getRow(int rowIndex) {
-        int[] row = new int[cols];
-        for (int col = 0; col < cols; col++) {
-            row[col] = baseMatrix.getValue(startRow + rowIndex, startCol + col);
-        }
-        return row;
+    public Matrix getUnderlying() {
+        return baseMatrix;
     }
 
-    @Override
-    public int[] getCol(int colIndex) {
-        int[] col = new int[rows];
-        for (int row = 0; row < rows; row++) {
-            col[row] = baseMatrix.getValue(startRow + row, startCol + colIndex);
-        }
-        return col;
+    public int getStartRow() {
+        return this.startRow;
+    }
+
+    public int getStartCol() {
+        return this.startCol;
     }
 
     @Override
     public int getNumRows() {
-        return rows;
+        return ROWS;
     }
 
     @Override
     public int getNumCols() {
-        return cols;
+        return COLS;
     }
 
     @Override
     public String toString() {
         StringBuilder printStr = new StringBuilder();
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
                 printStr.append(baseMatrix.getValue(startRow + row, startCol + col)+ " ");
             }
             printStr.append("\n");

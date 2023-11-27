@@ -7,7 +7,7 @@ import java.util.Random;
 public class Main {
     public static void main(String[] args) throws Utils.IncorrectMatrixDimensions {
 
-        int n = 4096;
+        int n = 2048;
         Random rand = new Random();
         int[][] mat1 = new int[n][n];
         int[][] mat2 = new int[n][n];
@@ -23,18 +23,18 @@ public class Main {
         Matrix res_strassen = new ConcreteMatrix(new int[n][n]);
         Matrix working = new ConcreteMatrix(new int[n][n]);
 
-//        System.out.println("Running direct naive: ");
-//        long startTime = System.nanoTime();
-//        Matrix res_direct = new ConcreteMatrix(new int[n][n]);
-//        realmat1.mult(realmat2, res_direct);
-//        long timeTaken = System.nanoTime() - startTime;
-//        System.out.println(timeTaken/1000000 + " ms");
+        System.out.println("Running direct naive: ");
+        long startTime = System.nanoTime();
+        Matrix res_direct = new ConcreteMatrix(new int[n][n]);
+        realmat1.mult(realmat2, res_direct);
+        long timeTaken = System.nanoTime() - startTime;
+        System.out.println(timeTaken/1000000 + " ms");
 
         System.out.println("Running strassen in place: ");
         SequentialInPlace strat = new SequentialInPlace(128);
-        long startTime = System.nanoTime();
+        startTime = System.nanoTime();
         strat.execute(realmat1, realmat2, working, res_strassen);
-        long timeTaken = System.nanoTime() - startTime;
+        timeTaken = System.nanoTime() - startTime;
         System.out.println(timeTaken/1000000 + " ms");
 
 
