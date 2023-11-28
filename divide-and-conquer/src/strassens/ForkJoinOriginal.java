@@ -1,35 +1,34 @@
 package strassens;
 
-import static strassens.Utils.*;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.RecursiveTask;
 
-public class Threaded implements StrassensStrategy{
+import static strassens.Utils.*;
+import static strassens.Utils.matAdd;
+
+public class ForkJoinOriginal {
+
     protected final int MIN_MATRIX_SIZE;
     protected final int PARALLELISM;
-    protected final StrassensStrategy BASE_CASE_STRATEGY;
+    protected final SequentialOriginal BASE_CASE_STRATEGY;
 
-    public Threaded(int minMatrixSize, int parallelism, StrassensStrategy baseCaseStrategy) {
+    public ForkJoinOriginal(int minMatrixSize, int parallelism, SequentialOriginal baseCaseStrategy) {
         this.MIN_MATRIX_SIZE = minMatrixSize;
         this.PARALLELISM = parallelism;
         this.BASE_CASE_STRATEGY = baseCaseStrategy;
     }
 
-    private class StrassensTask implements Runnable {
+    private class StrassensTask extends RecursiveTask {
 
         private int[][] mat1;
         private int[][] mat2;
-        private int[][] res;
 
         public StrassensTask(int[][] mat1, int[][] mat2) {
             this.mat1 = mat1;
             this.mat2 = mat2;
-            this.res = new int[mat1.length][mat1.length];
         }
 
-        public int[][] getResult() {
-            return res;
-        }
-
-        private int[][][] calculateStrassensPartials(int[][][] mat1Split, int[][][] mat2Split) throws Utils.IncorrectMatrixDimensions, InterruptedException {
+        private int[][][] calculateStrassensPartials(int[][][] mat1Split, int[][][] mat2Split) throws Utils.IncorrectMatrixDimensions {
             if (mat1Split.length != 4 || mat2Split.length != 4 || mat1Split[0].length != mat1Split[0][0].length
                     || mat2Split[0].length != mat2Split[0][0].length || mat1Split[0].length != mat2Split[0].length) {
                 throw new Utils.IncorrectMatrixDimensions("Must have 8 split square matrices (sharing same dim) to calculate Strassen's partial products!");
@@ -45,35 +44,30 @@ public class Threaded implements StrassensStrategy{
             tasks[4] = new StrassensTask(matAdd(mat1Split[0], mat1Split[3]), matAdd(mat2Split[0], mat2Split[3]));
             tasks[5] = new StrassensTask(matSub(mat1Split[1], mat1Split[3]), matAdd(mat2Split[2], mat2Split[3]));
             tasks[6] = new StrassensTask(matSub(mat1Split[0], mat1Split[2]), matAdd(mat2Split[0], mat2Split[1]));
+            invokeAll(tasks);
 
-            Thread[] threads = new Thread[tasks.length];
             for (int i = 0; i < tasks.length; i++) {
-                threads[i] = new Thread(tasks[i]);
-                threads[i].start();
+                strassensResult[i] = (int[][]) tasks[i].getRawResult();
             }
-            for (int i = 0; i < tasks.length; i++) {
-                threads[i].join();
-                strassensResult[i] = tasks[i].getResult();
-            }
-            return strassensResult;
+            return  strassensResult;
         }
 
-        private void computeDirectly() {
+        private int[][] computeDirectly() {
             try {
-                res = BASE_CASE_STRATEGY.execute(mat1, mat2);
+                return BASE_CASE_STRATEGY.execute(mat1, mat2);
             } catch (Utils.IncorrectMatrixDimensions e) {
                 throw new RuntimeException(e);
             }
         }
 
         @Override
-        public void run() {
+        protected int[][] compute() {
             if (mat1.length != mat2.length || mat1[0].length != mat2[0].length || mat1.length == 0) {
                 throw new RuntimeException(new Utils.IncorrectMatrixDimensions("mat1 and mat2 must be square matrices sharing same N! (>0)"));
             }
 
             if (mat1.length <= MIN_MATRIX_SIZE) { // base case
-                computeDirectly();
+                return computeDirectly();
             }
             else { // strassen's method
                 boolean zeroPadded = false;
@@ -88,25 +82,18 @@ public class Threaded implements StrassensStrategy{
                     int[][][] splitMat2 = splitMat(mat2);
                     int[][][] partialProducts = calculateStrassensPartials(splitMat1, splitMat2);
 
-                    res = !zeroPadded ? combineStrassensPartials(partialProducts) : dropZeroPad(combineStrassensPartials(partialProducts));
-                } catch (IncorrectMatrixDimensions | InterruptedException e) {
+                    return !zeroPadded ? combineStrassensPartials(partialProducts) : dropZeroPad(combineStrassensPartials(partialProducts));
+                } catch (Utils.IncorrectMatrixDimensions e) {
                     throw new RuntimeException(e);
                 }
             }
         }
     }
 
-    @Override
     public int[][] execute(int[][] mat1, int[][] mat2) throws Utils.IncorrectMatrixDimensions {
-        StrassensTask startTask = new StrassensTask(mat1, mat2);
-        Thread startThread = new Thread(startTask);
-        startThread.start();
-        try {
-            startThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return startTask.getResult();
+        StrassensTask task = new StrassensTask(mat1, mat2);
+        ForkJoinPool pool = new ForkJoinPool(PARALLELISM);
+        pool.execute(task);
+        return (int[][]) task.join();
     }
-
 }

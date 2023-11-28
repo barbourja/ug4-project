@@ -1,5 +1,5 @@
 package strassens;
 
 public interface StrassensStrategy {
-    int[][] execute(int[][] mat1, int[][] mat2) throws Utils.IncorrectMatrixDimensions;
+    Matrix execute(Matrix mat1, Matrix mat2, Matrix res);
 }

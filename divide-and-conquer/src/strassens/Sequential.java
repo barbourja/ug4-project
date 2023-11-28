@@ -1,7 +1,5 @@
 package strassens;
 
-import static strassens.Utils.*;
-
 public class Sequential implements StrassensStrategy{
 
     protected final int MIN_MATRIX_SIZE;
@@ -10,44 +8,52 @@ public class Sequential implements StrassensStrategy{
         this.MIN_MATRIX_SIZE = minMatrixSize;
     }
 
-    private int[][][] calculateStrassensPartials(int[][][] mat1Split, int[][][] mat2Split) throws IncorrectMatrixDimensions {
-        if (mat1Split.length != 4 || mat2Split.length != 4 || mat1Split[0].length != mat1Split[0][0].length
-                || mat2Split[0].length != mat2Split[0][0].length || mat1Split[0].length != mat2Split[0].length) {
-            throw new IncorrectMatrixDimensions("Must have 8 split square matrices (sharing same dim) to calculate Strassen's partial products!");
+    private void strassenMult(Matrix mat1, Matrix mat2, Matrix working, Matrix res) { // assume matrices perfectly square + even
+        if (!mat1.isSquare() || !mat2.isSquare() || !mat1.dimEquals(mat2)) {
+            throw new RuntimeException("Square/equal assumption doesn't hold!");
         }
-        int split = mat1Split[0].length;
-        int[][][] strassensResult = new int[7][split][split];
-        strassensResult[0] = execute(mat1Split[0], matSub(mat2Split[1], mat2Split[3]));
-        strassensResult[1] = execute(matAdd(mat1Split[0], mat1Split[1]), mat2Split[3]);
-        strassensResult[2] = execute(matAdd(mat1Split[2], mat1Split[3]), mat2Split[0]);
-        strassensResult[3] = execute(mat1Split[3], matSub(mat2Split[2], mat2Split[0]));
-        strassensResult[4] = execute(matAdd(mat1Split[0], mat1Split[3]), matAdd(mat2Split[0], mat2Split[3]));
-        strassensResult[5] = execute(matSub(mat1Split[1], mat1Split[3]), matAdd(mat2Split[2], mat2Split[3]));
-        strassensResult[6] = execute(matSub(mat1Split[0], mat1Split[2]), matAdd(mat2Split[0], mat2Split[1]));
-        return  strassensResult;
-    }
-
-    public int[][] execute(int[][] mat1, int[][] mat2) throws Utils.IncorrectMatrixDimensions{
-        boolean zeroPadded = false;
-        if (mat1.length != mat2.length || mat1[0].length != mat2[0].length || mat1.length == 0) {
-            throw new Utils.IncorrectMatrixDimensions("mat1 and mat2 must be square matrices sharing same N! (>0)");
-        }
-        else if (mat1.length % 2 != 0){ // odd dimension
-            zeroPadded = true;
-            mat1 = zeroPad(mat1);
-            mat2 = zeroPad(mat2);
-        }
-
-        int dimension = mat1.length; // guaranteed to be even by zero pad
-        if (dimension <= MIN_MATRIX_SIZE) { // base case
-            return !zeroPadded ? matMult(mat1, mat2) : dropZeroPad(matMult(mat1, mat2));
+        int dimension = mat1.getNumRows();
+        if (dimension <= MIN_MATRIX_SIZE) { // base case, directly multiply and store in result
+            mat1.mult(mat2, res);
         }
         else { // perform strassen algorithm
-            int[][][] mat1Split = splitMat(mat1);
-            int[][][] mat2Split = splitMat(mat2);
+            // splitting input matrices
+            Matrix[] mat1Split = mat1.quadrantSplit();
+            Matrix[] mat2Split = mat2.quadrantSplit();
+            Matrix[] resQuadrants = res.quadrantSplit();
+            Matrix[] workingQuadrants = working.quadrantSplit();
 
-            int[][][] partialProducts = calculateStrassensPartials(mat1Split, mat2Split);
-            return !zeroPadded ? combineStrassensPartials(partialProducts) : dropZeroPad(combineStrassensPartials(partialProducts));
+            Matrix tempQuadrant1 = new ConcreteMatrix(new int[mat1.getNumRows()/2][mat1.getNumRows()/2]);
+            Matrix tempQuadrant2 = new ConcreteMatrix(new int[mat1.getNumRows()/2][mat1.getNumRows()/2]);
+
+            // computing strassen partials
+            strassenMult(mat1Split[0], mat2Split[1].sub(mat2Split[3], workingQuadrants[0]), workingQuadrants[1], resQuadrants[0]); // p1
+            strassenMult(mat1Split[0].add(mat1Split[1], workingQuadrants[0]), mat2Split[3], workingQuadrants[1], resQuadrants[1]); // p2
+            strassenMult(mat1Split[2].add(mat1Split[3], workingQuadrants[0]), mat2Split[0], workingQuadrants[1], resQuadrants[2]); // p3
+            strassenMult(mat1Split[3], mat2Split[2].sub(mat2Split[0], workingQuadrants[0]), workingQuadrants[1], resQuadrants[3]); // p4
+            strassenMult(mat1Split[0].add(mat1Split[3], workingQuadrants[1]), mat2Split[0].add(mat2Split[3], workingQuadrants[2]), workingQuadrants[3], workingQuadrants[0]); // p5
+            strassenMult(mat1Split[1].sub(mat1Split[3], workingQuadrants[2]), mat2Split[2].add(mat2Split[3], workingQuadrants[3]), tempQuadrant1, workingQuadrants[1]); // p6
+            strassenMult(mat1Split[0].sub(mat1Split[2], workingQuadrants[3]), mat2Split[0].add(mat2Split[1], tempQuadrant1), tempQuadrant2, workingQuadrants[2]); // p7
+
+            // combining partials to give result
+            workingQuadrants[0].add(resQuadrants[3], workingQuadrants[3])
+                    .sub(resQuadrants[1], workingQuadrants[3])
+                    .add(workingQuadrants[1], workingQuadrants[3]); // resQuadrant[0] stored in workingQuadrants[3]
+            resQuadrants[0].add(resQuadrants[1], tempQuadrant1); // resQuadrant[1] stored in tempQuadrant
+            resQuadrants[1].updateMatrix(tempQuadrant1); // store result for resQuadrant[1], lose p2
+            resQuadrants[0].add(workingQuadrants[0], tempQuadrant1)
+                    .sub(resQuadrants[2], tempQuadrant1)
+                    .sub(workingQuadrants[2], tempQuadrant1); // resQuadrant[3] stored in tempQuadrant
+            resQuadrants[0].updateMatrix(workingQuadrants[3]); // store result for resQuadrant[0], lose p1
+            resQuadrants[2].add(resQuadrants[3], resQuadrants[2]); // compute resQuadrant[2] result directly
+            resQuadrants[3].updateMatrix(tempQuadrant1); // store result for resQuadrant[3], lose p4
         }
+    }
+
+    @Override
+    public Matrix execute(Matrix mat1, Matrix mat2, Matrix res) {
+        Matrix working = new ConcreteMatrix(new int[mat1.getNumRows()][mat1.getNumCols()]);
+        strassenMult(mat1, mat2, working, res);
+        return res;
     }
 }

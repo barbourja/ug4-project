@@ -3,9 +3,6 @@ package strassens;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
 
-import static strassens.Utils.*;
-import static strassens.Utils.matAdd;
-
 public class ForkJoin implements StrassensStrategy{
 
     protected final int MIN_MATRIX_SIZE;
@@ -18,83 +15,110 @@ public class ForkJoin implements StrassensStrategy{
         this.BASE_CASE_STRATEGY = baseCaseStrategy;
     }
 
-    private class StrassensTask extends RecursiveTask {
+    private class strassenMultTask extends RecursiveTask {
 
-        private int[][] mat1;
-        private int[][] mat2;
+        private final Matrix mat1;
+        private final Matrix mat2;
+        private final Matrix res;
 
-        public StrassensTask(int[][] mat1, int[][] mat2) {
+        public strassenMultTask(Matrix mat1, Matrix mat2, Matrix res) {
             this.mat1 = mat1;
             this.mat2 = mat2;
+            this.res = res;
         }
 
-        private int[][][] calculateStrassensPartials(int[][][] mat1Split, int[][][] mat2Split) throws Utils.IncorrectMatrixDimensions {
-            if (mat1Split.length != 4 || mat2Split.length != 4 || mat1Split[0].length != mat1Split[0][0].length
-                    || mat2Split[0].length != mat2Split[0][0].length || mat1Split[0].length != mat2Split[0].length) {
-                throw new Utils.IncorrectMatrixDimensions("Must have 8 split square matrices (sharing same dim) to calculate Strassen's partial products!");
-            }
-            int split = mat1Split[0].length;
-            int[][][] strassensResult = new int[7][split][split];
-
-            StrassensTask[] tasks = new StrassensTask[7];
-            tasks[0] = new StrassensTask(mat1Split[0], matSub(mat2Split[1], mat2Split[3]));
-            tasks[1] = new StrassensTask(matAdd(mat1Split[0], mat1Split[1]), mat2Split[3]);
-            tasks[2] = new StrassensTask(matAdd(mat1Split[2], mat1Split[3]), mat2Split[0]);
-            tasks[3] = new StrassensTask(mat1Split[3], matSub(mat2Split[2], mat2Split[0]));
-            tasks[4] = new StrassensTask(matAdd(mat1Split[0], mat1Split[3]), matAdd(mat2Split[0], mat2Split[3]));
-            tasks[5] = new StrassensTask(matSub(mat1Split[1], mat1Split[3]), matAdd(mat2Split[2], mat2Split[3]));
-            tasks[6] = new StrassensTask(matSub(mat1Split[0], mat1Split[2]), matAdd(mat2Split[0], mat2Split[1]));
-            invokeAll(tasks);
-
-            for (int i = 0; i < tasks.length; i++) {
-                strassensResult[i] = (int[][]) tasks[i].getRawResult();
-            }
-            return  strassensResult;
-        }
-
-        private int[][] computeDirectly() {
-            try {
-                return BASE_CASE_STRATEGY.execute(mat1, mat2);
-            } catch (Utils.IncorrectMatrixDimensions e) {
-                throw new RuntimeException(e);
-            }
+        private void computeDirectly() {
+            BASE_CASE_STRATEGY.execute(mat1, mat2, res);
         }
 
         @Override
-        protected int[][] compute() {
-            if (mat1.length != mat2.length || mat1[0].length != mat2[0].length || mat1.length == 0) {
-                throw new RuntimeException(new Utils.IncorrectMatrixDimensions("mat1 and mat2 must be square matrices sharing same N! (>0)"));
+        protected Matrix compute() {
+            if (!mat1.isSquare() || !mat2.isSquare() || !mat1.dimEquals(mat2)) {
+                throw new RuntimeException("Square/equal assumption doesn't hold!");
             }
+            int dimension = mat1.getNumRows();
+            if (dimension <= MIN_MATRIX_SIZE) { // base case
+                computeDirectly();
+            }
+            else { // perform strassen algorithm
+                // splitting input matrices
+                Matrix[] mat1Split = mat1.quadrantSplit();
+                Matrix[] mat2Split = mat2.quadrantSplit();
+                Matrix[] resQuadrants = res.quadrantSplit();
 
-            if (mat1.length <= MIN_MATRIX_SIZE) { // base case
-                return computeDirectly();
-            }
-            else { // strassen's method
-                boolean zeroPadded = false;
-                if (mat1.length % 2 != 0){ // odd dimension
-                    zeroPadded = true;
-                    mat1 = zeroPad(mat1);
-                    mat2 = zeroPad(mat2);
+                Matrix[] workingQuadrants = new Matrix[11]; // create 11 working quadrants to make 15 required to run in parallel (11 working + 4 result)
+                for (int i = 0; i < workingQuadrants.length; i++) {
+                    workingQuadrants[i] = new ConcreteMatrix(new int[dimension/2][dimension/2]);
                 }
 
-                try {
-                    int[][][] splitMat1 = splitMat(mat1);
-                    int[][][] splitMat2 = splitMat(mat2);
-                    int[][][] partialProducts = calculateStrassensPartials(splitMat1, splitMat2);
+                // reserve resQuadrants [0,3] and workingQuadrants[0,2] for partials
+                // winograd form for greater memory efficiency
+                strassenMultTask[] tasks = new strassenMultTask[7];
+                tasks[0] = new strassenMultTask(
+                        mat1Split[2].sub(mat1Split[0], workingQuadrants[3]),
+                        mat2Split[1].sub(mat2Split[3], workingQuadrants[4]),
+                        workingQuadrants[0]); // u
+                tasks[1] = new strassenMultTask(
+                        mat1Split[2].add(mat1Split[3],
+                                workingQuadrants[5]),
+                        mat2Split[1].sub(mat2Split[0], workingQuadrants[6]),
+                        workingQuadrants[1]); // v
+                tasks[2] = new strassenMultTask(
+                        mat1Split[0],
+                        mat2Split[0],
+                        workingQuadrants[2]); // p1
+                tasks[3] = new strassenMultTask(
+                        mat1Split[2].add(mat1Split[3], workingQuadrants[7])
+                                .sub(mat1Split[0], workingQuadrants[7]),
+                        mat2Split[0].add(mat2Split[3], workingQuadrants[8])
+                                .sub(mat2Split[1], workingQuadrants[8]),
+                        resQuadrants[3]); // p2
+                tasks[4] = new strassenMultTask(
+                        mat1Split[1],
+                        mat2Split[2],
+                        resQuadrants[0]); // p3
+                tasks[5] = new strassenMultTask(
+                        mat1Split[0].add(mat1Split[1], workingQuadrants[9])
+                                .sub(mat1Split[2], workingQuadrants[9])
+                                .sub(mat1Split[3], workingQuadrants[9]),
+                        mat2Split[3],
+                        resQuadrants[1]); // p4
+                tasks[6] = new strassenMultTask(
+                        mat1Split[3],
+                        mat2Split[2].add(workingQuadrants[6], workingQuadrants[10])
+                                .sub(mat2Split[3], workingQuadrants[10]),
+                        resQuadrants[2]); // p5
 
-                    return !zeroPadded ? combineStrassensPartials(partialProducts) : dropZeroPad(combineStrassensPartials(partialProducts));
-                } catch (Utils.IncorrectMatrixDimensions e) {
-                    throw new RuntimeException(e);
-                }
+                invokeAll(tasks);
+
+                // combining partials (winograd)
+                Matrix p1 = (Matrix) tasks[2].getRawResult();
+                Matrix p2 = (Matrix) tasks[3].getRawResult();
+                Matrix w = p1.add(p2, p2); // (w = p1 + p2), p2 no longer needed -> store directly in p2(resQuadrant[3])
+
+                Matrix p3 = (Matrix) tasks[4].getRawResult();
+                Matrix res0 = p3.add(p1, p3); // res0 = p3 + p1, p3 no longer needed -> store directly in p3(resQuadrants[0])
+
+                Matrix v = (Matrix) tasks[1].getRawResult();
+                Matrix p4 = (Matrix) tasks[5].getRawResult();
+                Matrix res1 = p4.add(w, p4).add(v, p4); // res1 = p4 + w + v, p4 no longer needed -> store directly in p4(resQuadrants[1])
+
+                Matrix u = (Matrix) tasks[0].getRawResult();
+                Matrix p5 = (Matrix) tasks[6].getRawResult();
+                Matrix res2 = p5.add(w, p5).add(u, p5); // res2 = p5 + w + u, p5 no longer needed -> store directly in p5(resQuadrants[2])
+
+                Matrix res3 = w.add(u, w).add(v, w); // res3 = w + u + v, w, u & v no longer needed -> store directly in w(resQuadrants[3])
             }
+
+            return res;
         }
     }
 
     @Override
-    public int[][] execute(int[][] mat1, int[][] mat2) throws Utils.IncorrectMatrixDimensions {
-        StrassensTask task = new StrassensTask(mat1, mat2);
+    public Matrix execute(Matrix mat1, Matrix mat2, Matrix res) {
+        strassenMultTask task = new strassenMultTask(mat1, mat2, res);
         ForkJoinPool pool = new ForkJoinPool(PARALLELISM);
         pool.execute(task);
-        return (int[][]) task.join();
+        return (Matrix) task.join();
     }
 }
