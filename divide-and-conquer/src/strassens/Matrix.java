@@ -2,11 +2,41 @@ package strassens;
 
 public abstract class Matrix {
 
-    abstract Matrix add(Matrix other, Matrix result);
+    protected abstract void addOp(Matrix other, Matrix target);
 
-    abstract Matrix sub(Matrix other, Matrix result);
+    public Matrix add(Matrix other, Matrix result) {
+        addOp(other, result);
+        return result;
+    }
 
-    abstract Matrix mult(Matrix other, Matrix result);
+    public Matrix addInPlace(Matrix other) {
+        addOp(other, this);
+        return this;
+    }
+
+    protected abstract void subOp(Matrix other, Matrix target);
+
+    public Matrix sub(Matrix other, Matrix result) {
+        subOp(other, result);
+        return result;
+    }
+
+    public Matrix subInPlace(Matrix other) {
+        subOp(other, this);
+        return this;
+    }
+
+    protected abstract void multOp(Matrix other, Matrix target);
+
+    public Matrix mult(Matrix other, Matrix result) {
+        multOp(other, result);
+        return result;
+    }
+
+    public Matrix multInPlace(Matrix other) {
+        multOp(other, this);
+        return this;
+    }
 
     abstract void updateMatrix(Matrix matrixToCopy);
 
@@ -33,7 +63,7 @@ public abstract class Matrix {
         return matSplit;
     }
 
-    abstract Matrix getUnderlying();
+    protected abstract Matrix getUnderlying();
 
     abstract int getStartRow();
 

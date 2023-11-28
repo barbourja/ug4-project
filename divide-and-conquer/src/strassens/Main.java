@@ -5,7 +5,7 @@ import java.util.Random;
 public class Main {
     public static void main(String[] args) {
 
-        int n = 4;
+        int n = 4096;
         Random rand = new Random();
         int[][] mat1 = new int[n][n];
         int[][] mat2 = new int[n][n];
@@ -18,25 +18,31 @@ public class Main {
 
         Matrix realmat1 = new ConcreteMatrix(mat1);
         Matrix realmat2 = new ConcreteMatrix(mat2);
+        Matrix res_direct = new ConcreteMatrix(new int[n][n]);
         Matrix res_sequential = new ConcreteMatrix(new int[n][n]);
         Matrix res_forkjoin = new ConcreteMatrix(new int[n][n]);
 
-        System.out.println("Running sequential...");
-        StrassensStrategy sequential = new Sequential(1);
+        System.out.println("Running direct naive...");
         long startTime = System.nanoTime();
-        sequential.execute(realmat1, realmat2, res_sequential);
+        res_direct = realmat1.mult(realmat2, res_direct);
         long timeTaken = System.nanoTime() - startTime;
         System.out.println(timeTaken/1000000 + " ms");
 
+        System.out.println("Running sequential...");
+        StrassensStrategy sequential = new Sequential(32);
+        startTime = System.nanoTime();
+        sequential.execute(realmat1, realmat2, res_sequential);
+        timeTaken = System.nanoTime() - startTime;
+        System.out.println(timeTaken/1000000 + " ms");
+
         System.out.println("Running fork/join...");
-        StrassensStrategy forkJoin = new ForkJoin(2, 16, sequential);
+        StrassensStrategy forkJoin = new ForkJoin(256, 16, sequential);
         startTime = System.nanoTime();
         forkJoin.execute(realmat1, realmat2, res_forkjoin);
         timeTaken = System.nanoTime() - startTime;
         System.out.println(timeTaken/1000000 + " ms");
 
+        System.out.println(res_direct.equals(res_sequential));
         System.out.println(res_sequential.equals(res_forkjoin));
-        System.out.println(res_sequential);
-        System.out.println(res_forkjoin);
     }
 }

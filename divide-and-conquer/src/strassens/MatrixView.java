@@ -28,34 +28,32 @@ public class MatrixView extends Matrix {
     }
 
     @Override
-    public Matrix add(Matrix other, Matrix result) {
+    protected void addOp(Matrix other, Matrix target) {
         if (!this.dimEquals(other)) {
             throw new RuntimeException("Mismatched matrix dimensions");
         }
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
-                result.updateValue(baseMatrix.getValue(START_ROW + row, START_COl + col) + other.getValue(row, col), row, col);
+                target.updateValue(baseMatrix.getValue(START_ROW + row, START_COl + col) + other.getValue(row, col), row, col);
             }
         }
-        return result;
     }
 
     @Override
-    public Matrix sub(Matrix other, Matrix result) {
+    protected void subOp(Matrix other, Matrix target) {
         if (!this.dimEquals(other)) {
             throw new RuntimeException("Mismatched matrix dimensions");
         }
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLS; col++) {
-                result.updateValue(baseMatrix.getValue(START_ROW + row, START_COl + col) - other.getValue(row, col), row, col);
+                target.updateValue(baseMatrix.getValue(START_ROW + row, START_COl + col) - other.getValue(row, col), row, col);
             }
         }
-        return result;
     }
 
     @Override
-    public Matrix mult(Matrix other, Matrix result) {
-        if (COLS != other.getNumRows() || result.getNumRows() != ROWS || result.getNumCols() != other.getNumCols()) {
+    protected void multOp(Matrix other, Matrix target) {
+        if (COLS != other.getNumRows() || target.getNumRows() != ROWS || target.getNumCols() != other.getNumCols()) {
             throw new RuntimeException("Mismatched matrix dimensions");
         }
         for (int row = 0; row < ROWS; row++) {
@@ -64,10 +62,9 @@ public class MatrixView extends Matrix {
                 for (int k = 0; k < other.getNumRows(); k++) {
                     res += baseMatrix.getValue(START_ROW + row, START_COl + k) * other.getValue(k, col);
                 }
-                result.updateValue(res, row, col);
+                target.updateValue(res, row, col);
             }
         }
-        return result;
     }
 
     @Override
@@ -117,10 +114,9 @@ public class MatrixView extends Matrix {
     }
 
     @Override
-    public Matrix getUnderlying() {
+    protected Matrix getUnderlying() {
         return baseMatrix;
     }
-
 
     @Override
     public int getStartRow() {

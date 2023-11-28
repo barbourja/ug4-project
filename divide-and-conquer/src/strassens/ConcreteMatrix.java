@@ -16,6 +16,46 @@ public class ConcreteMatrix extends Matrix {
     }
 
     @Override
+    protected void addOp(Matrix other, Matrix target) {
+        if (!this.dimEquals(other)) {
+            throw new RuntimeException("Mismatched matrix dimensions");
+        }
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+                target.updateValue(matrix[row][col] + other.getValue(row, col), row, col);
+            }
+        }
+    }
+
+    @Override
+    protected void subOp(Matrix other, Matrix target) {
+        if (!this.dimEquals(other)) {
+            throw new RuntimeException("Mismatched matrix dimensions");
+        }
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+                target.updateValue(matrix[row][col] - other.getValue(row, col), row, col);
+            }
+        }
+    }
+
+    @Override
+    protected void multOp(Matrix other, Matrix target) {
+        if (COLS != other.getNumRows() || target.getNumRows() != ROWS || target.getNumCols() != other.getNumCols()) {
+            throw new RuntimeException("Mismatched matrix dimensions");
+        }
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < other.getNumCols(); col++) {
+                int res = 0;
+                for (int k = 0; k < other.getNumRows(); k++) {
+                    res += matrix[row][k] * other.getValue(k, col);
+                }
+                target.updateValue(res, row, col);
+            }
+        }
+    }
+
+    @Override
     public void updateMatrix(Matrix matrixToCopy) {
         if (!this.dimEquals(matrixToCopy)) {
             throw new RuntimeException("Matrix to copy must have same dimensions");
@@ -41,50 +81,7 @@ public class ConcreteMatrix extends Matrix {
     }
 
     @Override
-    public Matrix add(Matrix other, Matrix result) {
-        if (!this.dimEquals(other)) {
-            throw new RuntimeException("Mismatched matrix dimensions");
-        }
-        for (int row = 0; row < ROWS; row++) {
-            for (int col = 0; col < COLS; col++) {
-                result.updateValue(matrix[row][col] + other.getValue(row, col), row, col);
-            }
-        }
-        return result;
-    }
-
-    @Override
-    public Matrix sub(Matrix other, Matrix result) {
-        if (!this.dimEquals(other)) {
-            throw new RuntimeException("Mismatched matrix dimensions");
-        }
-        for (int row = 0; row < ROWS; row++) {
-            for (int col = 0; col < COLS; col++) {
-                result.updateValue(matrix[row][col] - other.getValue(row, col), row, col);
-            }
-        }
-        return result;
-    }
-
-    @Override
-    public Matrix mult(Matrix other, Matrix result) {
-        if (COLS != other.getNumRows() || result.getNumRows() != ROWS || result.getNumCols() != other.getNumCols()) {
-            throw new RuntimeException("Mismatched matrix dimensions");
-        }
-        for (int row = 0; row < ROWS; row++) {
-            for (int col = 0; col < other.getNumCols(); col++) {
-                int res = 0;
-                for (int k = 0; k < other.getNumRows(); k++) {
-                    res += matrix[row][k] * other.getValue(k, col);
-                }
-                result.updateValue(res, row, col);
-            }
-        }
-        return result;
-    }
-
-    @Override
-    public Matrix getUnderlying() {
+    protected Matrix getUnderlying() {
         return this;
     }
 
@@ -99,9 +96,7 @@ public class ConcreteMatrix extends Matrix {
     }
 
     @Override
-    public int getNumRows() {
-        return ROWS;
-    }
+    public int getNumRows() {return ROWS;}
 
     @Override
     public int getNumCols() {return COLS; }

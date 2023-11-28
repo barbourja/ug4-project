@@ -59,34 +59,27 @@ public class ForkJoin implements StrassensStrategy{
                         mat2Split[1].sub(mat2Split[3], workingQuadrants[4]),
                         workingQuadrants[0]); // u
                 tasks[1] = new strassenMultTask(
-                        mat1Split[2].add(mat1Split[3],
-                                workingQuadrants[5]),
+                        mat1Split[2].add(mat1Split[3], workingQuadrants[5]),
                         mat2Split[1].sub(mat2Split[0], workingQuadrants[6]),
                         workingQuadrants[1]); // v
-                tasks[2] = new strassenMultTask(
-                        mat1Split[0],
-                        mat2Split[0],
-                        workingQuadrants[2]); // p1
+                tasks[2] = new strassenMultTask(mat1Split[0], mat2Split[0], workingQuadrants[2]); // p1
                 tasks[3] = new strassenMultTask(
                         mat1Split[2].add(mat1Split[3], workingQuadrants[7])
-                                .sub(mat1Split[0], workingQuadrants[7]),
+                                .subInPlace(mat1Split[0]),
                         mat2Split[0].add(mat2Split[3], workingQuadrants[8])
-                                .sub(mat2Split[1], workingQuadrants[8]),
+                                .subInPlace(mat2Split[1]),
                         resQuadrants[3]); // p2
-                tasks[4] = new strassenMultTask(
-                        mat1Split[1],
-                        mat2Split[2],
-                        resQuadrants[0]); // p3
+                tasks[4] = new strassenMultTask(mat1Split[1], mat2Split[2], resQuadrants[0]); // p3
                 tasks[5] = new strassenMultTask(
                         mat1Split[0].add(mat1Split[1], workingQuadrants[9])
-                                .sub(mat1Split[2], workingQuadrants[9])
-                                .sub(mat1Split[3], workingQuadrants[9]),
+                                .subInPlace(mat1Split[2])
+                                .subInPlace(mat1Split[3]),
                         mat2Split[3],
                         resQuadrants[1]); // p4
                 tasks[6] = new strassenMultTask(
                         mat1Split[3],
                         mat2Split[2].add(workingQuadrants[6], workingQuadrants[10])
-                                .sub(mat2Split[3], workingQuadrants[10]),
+                                .subInPlace(mat2Split[3]),
                         resQuadrants[2]); // p5
 
                 invokeAll(tasks);
