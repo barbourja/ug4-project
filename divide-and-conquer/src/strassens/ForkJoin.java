@@ -64,8 +64,7 @@ public class ForkJoin implements StrassensStrategy{
                         workingQuadrants[1]); // v
                 tasks[2] = new strassenMultTask(mat1Split[0], mat2Split[0], workingQuadrants[2]); // p1
                 tasks[3] = new strassenMultTask(
-                        mat1Split[2].add(mat1Split[3], workingQuadrants[7])
-                                .subInPlace(mat1Split[0]),
+                        workingQuadrants[5].sub(mat1Split[0], workingQuadrants[7]),
                         mat2Split[0].add(mat2Split[3], workingQuadrants[8])
                                 .subInPlace(mat2Split[1]),
                         resQuadrants[3]); // p2
@@ -82,22 +81,24 @@ public class ForkJoin implements StrassensStrategy{
                                 .subInPlace(mat2Split[3]),
                         resQuadrants[2]); // p5
 
-                invokeAll(tasks);
+                for (strassenMultTask task : tasks) {
+                    task.fork();
+                }
 
                 // combining partials (winograd)
-                Matrix p1 = (Matrix) tasks[2].getRawResult();
-                Matrix p2 = (Matrix) tasks[3].getRawResult();
+                Matrix p1 = (Matrix) tasks[2].join();
+                Matrix p2 = (Matrix) tasks[3].join();
                 Matrix w = p1.add(p2, p2); // (w = p1 + p2), p2 no longer needed -> store directly in p2(resQuadrant[3])
 
-                Matrix p3 = (Matrix) tasks[4].getRawResult();
+                Matrix p3 = (Matrix) tasks[4].join();
                 Matrix res0 = p3.add(p1, p3); // res0 = p3 + p1, p3 no longer needed -> store directly in p3(resQuadrants[0])
 
-                Matrix v = (Matrix) tasks[1].getRawResult();
-                Matrix p4 = (Matrix) tasks[5].getRawResult();
+                Matrix v = (Matrix) tasks[1].join();
+                Matrix p4 = (Matrix) tasks[5].join();
                 Matrix res1 = p4.add(w, p4).add(v, p4); // res1 = p4 + w + v, p4 no longer needed -> store directly in p4(resQuadrants[1])
 
-                Matrix u = (Matrix) tasks[0].getRawResult();
-                Matrix p5 = (Matrix) tasks[6].getRawResult();
+                Matrix u = (Matrix) tasks[0].join();
+                Matrix p5 = (Matrix) tasks[6].join();
                 Matrix res2 = p5.add(w, p5).add(u, p5); // res2 = p5 + w + u, p5 no longer needed -> store directly in p5(resQuadrants[2])
 
                 Matrix res3 = w.add(u, w).add(v, w); // res3 = w + u + v, w, u & v no longer needed -> store directly in w(resQuadrants[3])

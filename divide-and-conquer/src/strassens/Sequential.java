@@ -8,7 +8,7 @@ public class Sequential implements StrassensStrategy{
         this.MIN_MATRIX_SIZE = minMatrixSize;
     }
 
-    private void strassenMult(Matrix mat1, Matrix mat2, Matrix working, Matrix res) { // assume matrices perfectly square + even
+    private Matrix strassenMult(Matrix mat1, Matrix mat2, Matrix res) { // assume matrices perfectly square + even
         if (!mat1.isSquare() || !mat2.isSquare() || !mat1.dimEquals(mat2)) {
             throw new RuntimeException("Square/equal assumption doesn't hold!");
         }
@@ -21,39 +21,61 @@ public class Sequential implements StrassensStrategy{
             Matrix[] mat1Split = mat1.quadrantSplit();
             Matrix[] mat2Split = mat2.quadrantSplit();
             Matrix[] resQuadrants = res.quadrantSplit();
-            Matrix[] workingQuadrants = working.quadrantSplit();
-
-            Matrix tempQuadrant1 = new ConcreteMatrix(new int[mat1.getNumRows()/2][mat1.getNumRows()/2]);
-            Matrix tempQuadrant2 = new ConcreteMatrix(new int[mat1.getNumRows()/2][mat1.getNumRows()/2]);
+            Matrix[] workingQuadrants = new Matrix[5]; // create 4 working quadrants to make the 8 required to run sequentially (4 working + 4 result)
+            for (int i = 0; i < workingQuadrants.length; i++) {
+                workingQuadrants[i] = new ConcreteMatrix(new int[dimension/2][dimension/2]);
+            }
 
             // computing strassen partials
-            strassenMult(mat1Split[0], mat2Split[1].sub(mat2Split[3], workingQuadrants[0]), workingQuadrants[1], resQuadrants[0]); // p1
-            strassenMult(mat1Split[0].add(mat1Split[1], workingQuadrants[0]), mat2Split[3], workingQuadrants[1], resQuadrants[1]); // p2
-            strassenMult(mat1Split[2].add(mat1Split[3], workingQuadrants[0]), mat2Split[0], workingQuadrants[1], resQuadrants[2]); // p3
-            strassenMult(mat1Split[3], mat2Split[2].sub(mat2Split[0], workingQuadrants[0]), workingQuadrants[1], resQuadrants[3]); // p4
-            strassenMult(mat1Split[0].add(mat1Split[3], workingQuadrants[1]), mat2Split[0].add(mat2Split[3], workingQuadrants[2]), workingQuadrants[3], workingQuadrants[0]); // p5
-            strassenMult(mat1Split[1].sub(mat1Split[3], workingQuadrants[2]), mat2Split[2].add(mat2Split[3], workingQuadrants[3]), tempQuadrant1, workingQuadrants[1]); // p6
-            strassenMult(mat1Split[0].sub(mat1Split[2], workingQuadrants[3]), mat2Split[0].add(mat2Split[1], tempQuadrant1), tempQuadrant2, workingQuadrants[2]); // p7
+            // reserve resQuadrants [0,3] and workingQuadrants [0,2] for results
+            // using winograd form
+            Matrix u = strassenMult(
+                    mat1Split[2].sub(mat1Split[0], resQuadrants[0]),
+                    mat2Split[1].sub(mat2Split[3], resQuadrants[1]),
+                    workingQuadrants[0]
+            );
+            Matrix v = strassenMult(
+                    mat1Split[2].add(mat1Split[3], resQuadrants[2]),
+                    mat2Split[1].sub(mat2Split[0], workingQuadrants[3]),
+                    workingQuadrants[1]);
+            Matrix p1 = strassenMult(mat1Split[0], mat2Split[0], workingQuadrants[2]);
+            Matrix p2 = strassenMult(
+                    resQuadrants[2].sub(mat1Split[0], resQuadrants[2]),
+                    mat2Split[0].add(mat2Split[3], resQuadrants[1])
+                            .subInPlace(mat2Split[1]),
+                    resQuadrants[3]);
+            Matrix p3 = strassenMult(
+                    mat1Split[1],
+                    mat2Split[2],
+                    resQuadrants[0]
+            );
+            Matrix p4 = strassenMult(
+                    mat1Split[0].add(mat1Split[1], resQuadrants[2])
+                            .subInPlace(mat1Split[2])
+                            .subInPlace(mat1Split[3]),
+                    mat2Split[3],
+                    resQuadrants[1]
+            );
+            Matrix p5 = strassenMult(
+                    mat1Split[3],
+                    mat2Split[2].add(workingQuadrants[3], workingQuadrants[3])
+                            .subInPlace(mat2Split[3]),
+                    resQuadrants[2]
+            );
 
-            // combining partials to give result
-            workingQuadrants[0].add(resQuadrants[3], workingQuadrants[3])
-                    .sub(resQuadrants[1], workingQuadrants[3])
-                    .add(workingQuadrants[1], workingQuadrants[3]); // resQuadrant[0] stored in workingQuadrants[3]
-            resQuadrants[0].add(resQuadrants[1], tempQuadrant1); // resQuadrant[1] stored in tempQuadrant
-            resQuadrants[1].updateMatrix(tempQuadrant1); // store result for resQuadrant[1], lose p2
-            resQuadrants[0].add(workingQuadrants[0], tempQuadrant1)
-                    .sub(resQuadrants[2], tempQuadrant1)
-                    .sub(workingQuadrants[2], tempQuadrant1); // resQuadrant[3] stored in tempQuadrant
-            resQuadrants[0].updateMatrix(workingQuadrants[3]); // store result for resQuadrant[0], lose p1
-            resQuadrants[2].add(resQuadrants[3], resQuadrants[2]); // compute resQuadrant[2] result directly
-            resQuadrants[3].updateMatrix(tempQuadrant1); // store result for resQuadrant[3], lose p4
+            // combining partials (winograd)
+            Matrix w = p1.add(p2, p2); // (w = p1 + p2), p2 no longer needed -> store directly in p2(resQuadrant[3])
+
+            Matrix res0 = p3.add(p1, p3); // res0 = p3 + p1, p3 no longer needed -> store directly in p3(resQuadrants[0])
+            Matrix res1 = p4.add(w, p4).add(v, p4); // res1 = p4 + w + v, p4 no longer needed -> store directly in p4(resQuadrants[1])
+            Matrix res2 = p5.add(w, p5).add(u, p5); // res2 = p5 + w + u, p5 no longer needed -> store directly in p5(resQuadrants[2])
+            Matrix res3 = w.add(u, w).add(v, w); // res3 = w + u + v, w, u & v no longer needed -> store directly in w(resQuadrants[3])
         }
+        return res;
     }
 
     @Override
     public Matrix execute(Matrix mat1, Matrix mat2, Matrix res) {
-        Matrix working = new ConcreteMatrix(new int[mat1.getNumRows()][mat1.getNumCols()]);
-        strassenMult(mat1, mat2, working, res);
-        return res;
+        return strassenMult(mat1, mat2, res);
     }
 }
