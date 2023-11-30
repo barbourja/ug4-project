@@ -1,12 +1,12 @@
 package fft;
 
-import java.util.TimerTask;
-
 public class Threaded implements FFTStrategy{
 
     protected final int MIN_SEQUENCE_SIZE;
     protected final int PARALLELISM;
     protected final FFTStrategy BASE_CASE_STRATEGY;
+    protected final int DIVISION_FACTOR = 2;
+    protected int threadCount;
 
     public Threaded(int minSequenceSize, int parallelism, FFTStrategy baseCaseStrategy) {
         this.MIN_SEQUENCE_SIZE = minSequenceSize;
@@ -28,6 +28,15 @@ public class Threaded implements FFTStrategy{
             return res;
         }
 
+        private synchronized void updateThreadCount(int val) {
+            threadCount += val;
+            System.out.println(threadCount); //TODO: remove debug output
+        }
+
+        private synchronized boolean baseCondition(int n) {
+            return (n <= MIN_SEQUENCE_SIZE || (threadCount + DIVISION_FACTOR) > PARALLELISM);
+        }
+
         private void computeDirectly() {
             res = BASE_CASE_STRATEGY.execute(f);
         }
@@ -35,7 +44,7 @@ public class Threaded implements FFTStrategy{
         @Override
         public void run() {
             int n = f.length;
-            if (n <= MIN_SEQUENCE_SIZE) { // base case
+            if (baseCondition(n)) { // base case
                 computeDirectly();
             }
             else { // perform fft
@@ -59,6 +68,7 @@ public class Threaded implements FFTStrategy{
                 FFTTask evenTask = new FFTTask(f_even);
                 FFTTask oddTask = new FFTTask(f_odd);
 
+                updateThreadCount(DIVISION_FACTOR);
                 Thread evenThread = new Thread(evenTask);
                 Thread oddThread = new Thread(oddTask);
                 evenThread.start();
@@ -66,6 +76,7 @@ public class Threaded implements FFTStrategy{
                 try {
                     evenThread.join();
                     oddThread.join();
+                    updateThreadCount(-DIVISION_FACTOR);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -89,6 +100,7 @@ public class Threaded implements FFTStrategy{
     public Complex[] execute(Complex[] f) {
         FFTTask startTask = new FFTTask(f);
         Thread startThread = new Thread(startTask);
+        threadCount = 1;
         startThread.start();
         try {
             startThread.join();

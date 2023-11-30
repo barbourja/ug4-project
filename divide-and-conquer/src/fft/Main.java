@@ -6,7 +6,7 @@ public class Main {
 
     public static void main(String[] args) {
         Random rand = new Random();
-        int n = (int) Math.pow(2, 22);
+        int n = (int) Math.pow(2, 18);
         Complex[] f = new Complex[n];
         for (int i = 0; i < n; i++) {
             f[i] = new Complex(rand.nextDouble(), rand.nextDouble());

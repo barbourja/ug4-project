@@ -7,6 +7,8 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
     protected final int MIN_ARRAY_SIZE;
     protected final int PARALLELISM;
     protected final MergeSortStrategy<T> BASE_CASE_STRATEGY;
+    protected final int DIVISION_FACTOR = 2;
+    protected int threadCount;
 
     public Threaded(int minArraySize, int parallelism, MergeSortStrategy<T> baseCaseStrategy) {
         this.MIN_ARRAY_SIZE = minArraySize;
@@ -26,13 +28,23 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
             this.end = end;
         }
 
+        private synchronized boolean baseCondition() {
+            return (end - start <= MIN_ARRAY_SIZE || (threadCount + DIVISION_FACTOR) > PARALLELISM);
+        }
+
+        private synchronized void updateThreadCount(int val) {
+            threadCount += val;
+            System.out.println(threadCount); //TODO: remove debug output
+        }
+
         private void computeDirectly() {
             BASE_CASE_STRATEGY.execute(arrToSort, start, end);
         }
 
         @Override
         public void run() {
-            if (end - start <= MIN_ARRAY_SIZE) {
+
+            if (baseCondition()) {
                 computeDirectly();
             }
             else {
@@ -43,11 +55,13 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
                 Thread lowerThread = new Thread(lowerHalfTask);
                 Thread upperThread = new Thread(upperHalfTask);
 
+                updateThreadCount(DIVISION_FACTOR);
                 lowerThread.start();
                 upperThread.start();
                 try {
                     lowerThread.join();
                     upperThread.join();
+                    updateThreadCount(-DIVISION_FACTOR);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -58,6 +72,7 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
 
     public void execute(T[] arrToSort, int start, int end) {
         Thread startThread = new Thread(new MergeSortTask(arrToSort, start, end));
+        threadCount = 1;
         startThread.start();
         try {
             startThread.join();
