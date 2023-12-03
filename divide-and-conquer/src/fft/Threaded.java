@@ -14,6 +14,19 @@ public class Threaded implements FFTStrategy{
         this.BASE_CASE_STRATEGY = baseCaseStrategy;
     }
 
+    private synchronized void updateThreadCount(int val) {
+        threadCount += val;
+        System.out.println(threadCount); //TODO: remove debug output
+    }
+
+    private synchronized boolean requestThreads() {
+        if (threadCount + DIVISION_FACTOR <= PARALLELISM) {
+            updateThreadCount(DIVISION_FACTOR);
+            return true;
+        }
+        return false;
+    }
+
     private class FFTTask implements Runnable {
 
         private final Complex[] f;
@@ -28,13 +41,8 @@ public class Threaded implements FFTStrategy{
             return res;
         }
 
-        private synchronized void updateThreadCount(int val) {
-            threadCount += val;
-            System.out.println(threadCount); //TODO: remove debug output
-        }
-
-        private synchronized boolean baseCondition(int n) {
-            return (n <= MIN_SEQUENCE_SIZE || (threadCount + DIVISION_FACTOR) > PARALLELISM);
+        private boolean baseCondition(int n) {
+            return (n <= MIN_SEQUENCE_SIZE);
         }
 
         private void computeDirectly() {
@@ -51,47 +59,54 @@ public class Threaded implements FFTStrategy{
                 if (n % 2 != 0) {
                     throw new RuntimeException("N must be even to perform FFT!");
                 }
-                Complex[] F = new Complex[n];
-                Complex[] f_odd = new Complex[n/2];
-                Complex[] f_even = new Complex[n/2];
-                boolean odd = false;
-                for (int i = 0; i < n; i++) {
-                    if (odd) {
-                        f_odd[i/2] = f[i];
+
+                boolean threaded = requestThreads();
+
+                if (threaded) {
+                    Complex[] F = new Complex[n];
+                    Complex[] f_odd = new Complex[n/2];
+                    Complex[] f_even = new Complex[n/2];
+                    boolean odd = false;
+                    for (int i = 0; i < n; i++) {
+                        if (odd) {
+                            f_odd[i/2] = f[i];
+                        }
+                        else {
+                            f_even[i/2] = f[i];
+                        }
+                        odd = !odd;
                     }
-                    else {
-                        f_even[i/2] = f[i];
+
+                    FFTTask evenTask = new FFTTask(f_even);
+                    FFTTask oddTask = new FFTTask(f_odd);
+                    Thread evenThread = new Thread(evenTask);
+                    Thread oddThread = new Thread(oddTask);
+                    evenThread.start();
+                    oddThread.start();
+                    try {
+                        evenThread.join();
+                        oddThread.join();
+                        updateThreadCount(-DIVISION_FACTOR);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
-                    odd = !odd;
+
+                    Complex[] F_even = evenTask.getResult();
+                    Complex[] F_odd = oddTask.getResult();
+
+                    for (int i = 0; i < n/2; i++) {
+                        double exp_i = (-2 * i * Math.PI) / n;
+                        Complex twiddle = new Complex(Math.cos(exp_i), Math.sin(exp_i));
+                        Complex oddTerm = F_odd[i].mult(twiddle);
+                        F[i] = F_even[i].add(oddTerm);
+                        F[n/2 + i] = F_even[i].sub(oddTerm);
+                    }
+                    res = F;
                 }
 
-                FFTTask evenTask = new FFTTask(f_even);
-                FFTTask oddTask = new FFTTask(f_odd);
-
-                updateThreadCount(DIVISION_FACTOR);
-                Thread evenThread = new Thread(evenTask);
-                Thread oddThread = new Thread(oddTask);
-                evenThread.start();
-                oddThread.start();
-                try {
-                    evenThread.join();
-                    oddThread.join();
-                    updateThreadCount(-DIVISION_FACTOR);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                else {
+                    computeDirectly();
                 }
-
-                Complex[] F_even = evenTask.getResult();
-                Complex[] F_odd = oddTask.getResult();
-
-                for (int i = 0; i < n/2; i++) {
-                    double exp_i = (-2 * i * Math.PI) / n;
-                    Complex twiddle = new Complex(Math.cos(exp_i), Math.sin(exp_i));
-                    Complex oddTerm = F_odd[i].mult(twiddle);
-                    F[i] = F_even[i].add(oddTerm);
-                    F[n/2 + i] = F_even[i].sub(oddTerm);
-                }
-                res = F;
             }
         }
     }
