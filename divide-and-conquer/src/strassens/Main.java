@@ -21,12 +21,16 @@ public class Main {
         Matrix res_direct = new ConcreteMatrix(new int[n][n]);
         Matrix res_sequential = new ConcreteMatrix(new int[n][n]);
         Matrix res_forkjoin = new ConcreteMatrix(new int[n][n]);
+        Matrix res_threaded = new ConcreteMatrix(new int[n][n]);
 
-        System.out.println("Running direct naive...");
-        long startTime = System.nanoTime();
-        res_direct = realmat1.mult(realmat2, res_direct);
-        long timeTaken = System.nanoTime() - startTime;
-        System.out.println(timeTaken/1000000 + " ms");
+        long startTime;
+        long timeTaken;
+
+//        System.out.println("Running direct naive...");
+//        long startTime = System.nanoTime();
+//        res_direct = realmat1.mult(realmat2, res_direct);
+//        long timeTaken = System.nanoTime() - startTime;
+//        System.out.println(timeTaken/1000000 + " ms");
 
         System.out.println("Running sequential...");
         StrassensStrategy sequential = new Sequential(32);
@@ -42,7 +46,15 @@ public class Main {
         timeTaken = System.nanoTime() - startTime;
         System.out.println(timeTaken/1000000 + " ms");
 
+        System.out.println("Running threaded...");
+        StrassensStrategy threaded = new Threaded(256, 16, sequential);
+        startTime = System.nanoTime();
+        threaded.execute(realmat1, realmat2, res_threaded);
+        timeTaken = System.nanoTime() - startTime;
+        System.out.println(timeTaken/1000000 + " ms");
+
         System.out.println(res_direct.equals(res_sequential));
         System.out.println(res_sequential.equals(res_forkjoin));
+        System.out.println(res_forkjoin.equals(res_threaded));
     }
 }
