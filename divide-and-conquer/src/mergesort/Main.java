@@ -14,19 +14,23 @@ public class Main {
         Integer[] testArr2 = Arrays.copyOf(testArr1, testArr1.length);
         Integer[] testArr3 = Arrays.copyOf(testArr1, testArr1.length);
         int minArraySize = numElems/5;
+        long startTime, timeTaken;
 
         MergeSortStrategy<Integer> sequential = new Sequential<>(minArraySize/4);
-        long startTime = System.nanoTime();
+        System.out.println("Running sequential...");
+        startTime = System.nanoTime();
         sequential.execute(testArr1);
-        long timeTaken = System.nanoTime() - startTime;
+        timeTaken = System.nanoTime() - startTime;
         System.out.println("Sequential: " + (timeTaken/1000000) + " ms");
 
+        System.out.println("Running fork/join...");
         MergeSortStrategy<Integer> forkJoin = new ForkJoin<>(minArraySize, 8, sequential);
         startTime = System.nanoTime();
         forkJoin.execute(testArr2);
         timeTaken = System.nanoTime() - startTime;
         System.out.println("Fork/Join: " + (timeTaken/1000000) + " ms");
 
+        System.out.println("Running threaded...");
         MergeSortStrategy<Integer> threaded = new Threaded<>(minArraySize, 8, sequential);
         startTime = System.nanoTime();
         threaded.execute(testArr3);
