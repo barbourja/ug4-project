@@ -6,7 +6,7 @@ import java.util.Random;
 public class Main {
     public static void main(String[] args) {
         Random rand = new Random();
-        int numElems = 1000000;
+        int numElems = 7;
         Integer[] testArr1 = new Integer[numElems];
         for (int i = 0; i < numElems; i++) {
             testArr1[i] = rand.nextInt(numElems/2);
