@@ -24,7 +24,7 @@ public class Main {
 
         QuickSelectStrategy<Integer> sequential = new Sequential<>();
         QuickSelectStrategy<Integer> forkJoin = new ForkJoin<>(n/16, 16, sequential);
-        QuickSelectStrategy<Integer> threaded = new Threaded<>(n/16, 1, sequential);
+        QuickSelectStrategy<Integer> threaded = new Threaded<>(n/16, 16, sequential);
 
         System.out.println("Running sequential...");
         startTime = System.nanoTime();
