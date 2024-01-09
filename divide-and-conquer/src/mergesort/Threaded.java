@@ -19,6 +19,11 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
         this.MAX_LEVEL = (int) floor(log((DIVISION_FACTOR - 1) * PARALLELISM)/log(DIVISION_FACTOR));
     }
 
+    protected synchronized void updateNumThreads(int numThreadChange) {
+        threadCount += numThreadChange;
+        System.out.println("Thread Count: " + threadCount); //TODO: remove debug
+    }
+
     private synchronized boolean requestThreads(int level) {
         if ((level < MAX_LEVEL) && (threadCount + DIVISION_FACTOR <= PARALLELISM)) {
             updateNumThreads(DIVISION_FACTOR);
@@ -29,23 +34,18 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
         }
     }
 
-    protected synchronized void updateNumThreads(int numThreadChange) {
-        threadCount = threadCount + numThreadChange;
-        System.out.println("Thread Count: " + threadCount); //TODO: remove debug
-    }
-
     private class MergeSortTask implements Runnable {
 
         private final T[] arrToSort;
         private final int start;
         private final int end;
-        private final int currLevel;
+        private final int CURR_LEVEL;
 
         public MergeSortTask(T[] arrToSort, int start, int end, int currLevel) {
             this.arrToSort = arrToSort;
             this.start = start;
             this.end = end;
-            this.currLevel = currLevel;
+            this.CURR_LEVEL = currLevel;
         }
 
         private boolean baseCondition() {
@@ -58,15 +58,15 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
 
         @Override
         public void run() {
-            boolean threaded = requestThreads(currLevel);
+            boolean threaded = requestThreads(CURR_LEVEL);
 
             if (baseCondition() || !threaded) {
                 computeDirectly();
             }
             else {
                 int midPoint = (start + end) / 2;
-                MergeSortTask lowerHalfTask = new MergeSortTask(arrToSort, start, midPoint, currLevel + 1);
-                MergeSortTask upperHalfTask = new MergeSortTask(arrToSort, midPoint, end, currLevel + 1);
+                MergeSortTask lowerHalfTask = new MergeSortTask(arrToSort, start, midPoint, CURR_LEVEL + 1);
+                MergeSortTask upperHalfTask = new MergeSortTask(arrToSort, midPoint, end, CURR_LEVEL + 1);
 
                 Thread lowerThread = new Thread(lowerHalfTask);
                 Thread upperThread = new Thread(upperHalfTask);
@@ -86,7 +86,8 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
     }
 
     public void execute(T[] arrToSort, int start, int end) {
-        Thread startThread = new Thread(new MergeSortTask(arrToSort, start, end, 0));
+        MergeSortTask startTask = new MergeSortTask(arrToSort, start, end, 0);
+        Thread startThread = new Thread(startTask);
         threadCount = 1;
         startThread.start();
         try {
