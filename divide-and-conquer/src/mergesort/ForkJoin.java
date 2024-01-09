@@ -12,7 +12,7 @@ public class ForkJoin<T extends Comparable<T>> implements MergeSortStrategy<T>{
     protected final MergeSortStrategy<T> BASE_CASE_STRATEGY;
 
     public ForkJoin(int minArraySize, int parallelism, MergeSortStrategy<T> baseCaseStrategy) {
-        this.MIN_ARRAY_SIZE = minArraySize;
+        this.MIN_ARRAY_SIZE = minArraySize > 0 ? minArraySize : 1;
         this.PARALLELISM = parallelism;
         this.BASE_CASE_STRATEGY = baseCaseStrategy;
     }

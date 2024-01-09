@@ -8,7 +8,7 @@ public class Sequential<T extends Comparable<T>> implements MergeSortStrategy<T>
     protected final int MIN_ARRAY_SIZE;
 
     public Sequential(int minArraySize) {
-        this.MIN_ARRAY_SIZE = minArraySize;
+        this.MIN_ARRAY_SIZE = minArraySize > 0 ? minArraySize : 1;
     }
 
     public void execute(T[] arrToSort, int start, int end) { // interval is [start, end)

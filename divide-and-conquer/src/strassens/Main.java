@@ -26,11 +26,11 @@ public class Main {
         long startTime;
         long timeTaken;
 
-//        System.out.println("Running direct naive...");
-//        long startTime = System.nanoTime();
-//        res_direct = realmat1.mult(realmat2, res_direct);
-//        long timeTaken = System.nanoTime() - startTime;
-//        System.out.println(timeTaken/1000000 + " ms");
+        System.out.println("Running direct naive...");
+        startTime = System.nanoTime();
+        res_direct = realmat1.mult(realmat2, res_direct);
+        timeTaken = System.nanoTime() - startTime;
+        System.out.println(timeTaken/1000000 + " ms");
 
         System.out.println("Running sequential...");
         StrassensStrategy sequential = new Sequential(32);
