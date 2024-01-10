@@ -5,8 +5,8 @@ import static java.lang.Math.log;
 
 public class Threaded implements FFTStrategy{
 
-    protected final int MIN_SEQUENCE_SIZE;
-    protected final int PARALLELISM;
+    protected int MIN_SEQUENCE_SIZE;
+    protected int PARALLELISM;
     protected final FFTStrategy BASE_CASE_STRATEGY;
     protected final int DIVISION_FACTOR = 2;
     protected final int MAX_LEVEL;
@@ -21,7 +21,6 @@ public class Threaded implements FFTStrategy{
 
     private synchronized void updateNumThreads(int numThreadChange) {
         threadCount += numThreadChange;
-        System.out.println("Thread Count: " + threadCount); //TODO: remove debug
     }
 
     private synchronized boolean requestThreads(int level) {
@@ -126,5 +125,33 @@ public class Threaded implements FFTStrategy{
             e.printStackTrace();
         }
         return startTask.getResult();
+    }
+
+    @Override
+    public void setMinSize(int size) {
+        this.MIN_SEQUENCE_SIZE = size;
+    }
+
+    @Override
+    public void setParallelism(int parallelism) {
+        this.PARALLELISM = parallelism;
+    }
+
+    @Override
+    public String toString() {
+        return "Threaded | Minimum Sequence Size = " + MIN_SEQUENCE_SIZE + " | Parallelism = " + PARALLELISM;
+    }
+
+    @Override
+    public String toString(boolean minSize, boolean parallelism) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Sequential ");
+        if (minSize) {
+            sb.append("| Minimum Sequence Size = " + MIN_SEQUENCE_SIZE + " ");
+        }
+        if (parallelism) {
+            sb.append("| Parallelism = " + PARALLELISM + " ");
+        }
+        return sb.toString();
     }
 }

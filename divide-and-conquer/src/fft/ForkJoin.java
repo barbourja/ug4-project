@@ -5,8 +5,8 @@ import java.util.concurrent.RecursiveTask;
 
 public class ForkJoin implements FFTStrategy {
 
-    protected final int MIN_SEQUENCE_SIZE;
-    protected final int PARALLELISM;
+    protected int MIN_SEQUENCE_SIZE;
+    protected int PARALLELISM;
     protected final FFTStrategy BASE_CASE_STRATEGY;
 
     public ForkJoin(int minSequenceSize, int parallelism, FFTStrategy baseCaseStrategy) {
@@ -75,5 +75,33 @@ public class ForkJoin implements FFTStrategy {
         ForkJoinPool pool = new ForkJoinPool(PARALLELISM);
         pool.execute(task);
         return (Complex[]) task.join();
+    }
+
+    @Override
+    public void setMinSize(int size) {
+        this.MIN_SEQUENCE_SIZE = size;
+    }
+
+    @Override
+    public void setParallelism(int parallelism) {
+        this.PARALLELISM = parallelism;
+    }
+
+    @Override
+    public String toString() {
+        return "ForkJoin | Minimum Sequence Size = " + MIN_SEQUENCE_SIZE + " | Parallelism = " + PARALLELISM;
+    }
+
+    @Override
+    public String toString(boolean minSize, boolean parallelism) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Sequential ");
+        if (minSize) {
+            sb.append("| Minimum Sequence Size = " + MIN_SEQUENCE_SIZE + " ");
+        }
+        if (parallelism) {
+            sb.append("| Parallelism = " + PARALLELISM + " ");
+        }
+        return sb.toString();
     }
 }
