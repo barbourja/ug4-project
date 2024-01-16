@@ -13,6 +13,9 @@ public class Threaded implements FFTStrategy{
     protected int threadCount;
 
     public Threaded(int minSequenceSize, int parallelism, FFTStrategy baseCaseStrategy) {
+        if (parallelism < 1 || minSequenceSize < 1) {
+            throw new RuntimeException("Parallelism/minimum sequence size cannot be < 1.");
+        }
         this.MIN_SEQUENCE_SIZE = minSequenceSize;
         this.PARALLELISM = parallelism;
         this.BASE_CASE_STRATEGY = baseCaseStrategy;
@@ -128,24 +131,38 @@ public class Threaded implements FFTStrategy{
     }
 
     @Override
+    public int getMinSize() {
+        return MIN_SEQUENCE_SIZE;
+    }
+
+    @Override
+    public int getParallelism() {
+        return PARALLELISM;
+    }
+
+    @Override
     public void setMinSize(int size) {
-        this.MIN_SEQUENCE_SIZE = size;
+        if (size >= 1) {
+            this.MIN_SEQUENCE_SIZE = size;
+        }
     }
 
     @Override
     public void setParallelism(int parallelism) {
-        this.PARALLELISM = parallelism;
+        if (parallelism >= 1) {
+            this.PARALLELISM = parallelism;
+        }
     }
 
     @Override
     public String toString() {
-        return "Threaded | Minimum Sequence Size = " + MIN_SEQUENCE_SIZE + " | Parallelism = " + PARALLELISM;
+        return "FFT Threaded | Minimum Sequence Size = " + MIN_SEQUENCE_SIZE + " | Parallelism = " + PARALLELISM;
     }
 
     @Override
     public String toString(boolean minSize, boolean parallelism) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Sequential ");
+        sb.append("FFT Threaded ");
         if (minSize) {
             sb.append("| Minimum Sequence Size = " + MIN_SEQUENCE_SIZE + " ");
         }

@@ -58,6 +58,16 @@ public class Sequential implements FFTStrategy{
     }
 
     @Override
+    public int getMinSize() {
+        return MIN_SEQUENCE_SIZE;
+    }
+
+    @Override
+    public int getParallelism() {
+        return 1;
+    }
+
+    @Override
     public void setMinSize(int size) {
         this.MIN_SEQUENCE_SIZE = size;
     }
@@ -69,13 +79,13 @@ public class Sequential implements FFTStrategy{
 
     @Override
     public String toString() {
-        return "Sequential | Minimum Sequence Size = " + MIN_SEQUENCE_SIZE;
+        return "FFT Sequential | Minimum Sequence Size = " + MIN_SEQUENCE_SIZE;
     }
 
     @Override
     public String toString(boolean minSize, boolean parallelism) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Sequential ");
+        sb.append("FFT Sequential ");
         if (minSize) {
             sb.append("| Minimum Sequence Size = " + MIN_SEQUENCE_SIZE);
         }
