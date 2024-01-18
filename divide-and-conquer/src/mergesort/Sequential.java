@@ -5,7 +5,7 @@ import static mergesort.Utils.merge;
 
 public class Sequential<T extends Comparable<T>> implements MergeSortStrategy<T>{
 
-    protected final int MIN_ARRAY_SIZE;
+    protected int MIN_ARRAY_SIZE;
 
     public Sequential(int minArraySize) {
         this.MIN_ARRAY_SIZE = minArraySize > 0 ? minArraySize : 1;
@@ -34,5 +34,40 @@ public class Sequential<T extends Comparable<T>> implements MergeSortStrategy<T>
             execute(arrToSort, midPoint, arrToSort.length);
             return merge(arrToSort, 0, midPoint, arrToSort.length);
         }
+    }
+
+    @Override
+    public int getMinSize() {
+        return MIN_ARRAY_SIZE;
+    }
+
+    @Override
+    public int getParallelism() {
+        return 1;
+    }
+
+    @Override
+    public void setMinSize(int size) {
+        MIN_ARRAY_SIZE = size;
+    }
+
+    @Override
+    public void setParallelism(int parallelism) {
+        // do nothing
+    }
+
+    @Override
+    public String toString() {
+        return "MergeSort Sequential | Minimum Array Size = " + MIN_ARRAY_SIZE;
+    }
+
+    @Override
+    public String toString(boolean minSize, boolean parallelism) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("MergeSort Sequential ");
+        if (minSize) {
+            sb.append("| Minimum Array Size = " + MIN_ARRAY_SIZE);
+        }
+        return sb.toString();
     }
 }

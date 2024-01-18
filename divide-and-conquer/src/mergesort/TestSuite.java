@@ -1,4 +1,4 @@
-package fft;
+package mergesort;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -6,7 +6,7 @@ import java.util.Random;
 
 public class TestSuite {
 
-    public static Long[] testVaryingParallelism(FFTStrategy strategyUnderTest, Integer numInputs, Integer minSize, boolean prettyPrinting) { // return array of average run times
+    public static Long[] testVaryingParallelism(MergeSortStrategy<Integer> strategyUnderTest, Integer numInputs, Integer minSize, boolean prettyPrinting) { // return array of average run times
         ArrayList<Long> averageRuntimes = new ArrayList<>();
         System.out.println(strategyUnderTest.toString(true, false) + " - Varying parallelism");
 
@@ -38,7 +38,7 @@ public class TestSuite {
         return averageRuntimes.toArray(new Long[0]);
     }
 
-    public static Long[] testVaryingMinSize(FFTStrategy strategyUnderTest, Integer numInputs, Integer parallelism, boolean prettyPrinting) { // return array of average run times
+    public static Long[] testVaryingMinSize(MergeSortStrategy<Integer> strategyUnderTest, Integer numInputs, Integer parallelism, boolean prettyPrinting) { // return array of average run times
         parallelism = strategyUnderTest instanceof Sequential ? 1 : parallelism;
 
         ArrayList<Long> averageRuntimes = new ArrayList<>();
@@ -68,14 +68,14 @@ public class TestSuite {
         return averageRuntimes.toArray(new Long[0]);
     }
 
-    private static long testVaryingInputs(FFTStrategy strategyUnderTest, Integer numInputs, Integer minSize, Integer parallelism, boolean prettyPrinting) { // return average run time across inputs
+    private static long testVaryingInputs(MergeSortStrategy<Integer> strategyUnderTest, Integer numInputs, Integer minSize, Integer parallelism, boolean prettyPrinting) { // return average run time across inputs
         Random rand = new Random();
-        ArrayList<Complex[]> inputs = new ArrayList<>();
+        ArrayList<Integer[]> inputs = new ArrayList<>();
         for (int i = 0; i < numInputs; i++) {
-            int n = (int) Math.pow(2, i + 9);
-            Complex[] input = new Complex[n];
+            int n = (int) Math.pow(10, i + 1);
+            Integer[] input = new Integer[n];
             for (int j = 0; j < n; j++) {
-                input[j] = new Complex(rand.nextDouble(), rand.nextDouble());
+                input[j] = rand.nextInt();
             }
             inputs.add(input);
         }
@@ -84,9 +84,9 @@ public class TestSuite {
     }
 
 
-    private static double runTestOnInputs(FFTStrategy strategyUnderTest, Collection<Complex[]> inputs, Integer minSize, Integer parallelism, boolean prettyPrinting) { // return average run time across inputs
+    private static double runTestOnInputs(MergeSortStrategy<Integer> strategyUnderTest, Collection<Integer[]> inputs, Integer minSize, Integer parallelism, boolean prettyPrinting) { // return average run time across inputs
         ArrayList<Long> runtimes = new ArrayList<>();
-        for (Complex[] input : inputs) {
+        for (Integer[] input : inputs) {
             long runtime = runSimpleTest(strategyUnderTest, input, minSize, parallelism);
             runtimes.add(runtime);
             if (prettyPrinting) {
@@ -97,7 +97,7 @@ public class TestSuite {
         return runtimes.stream().mapToLong(Long::valueOf).average().getAsDouble();
     }
 
-    private static long runSimpleTest(FFTStrategy strategyUnderTest, Complex[] input, Integer minSize, Integer parallelism) { // return run time
+    private static long runSimpleTest(MergeSortStrategy<Integer> strategyUnderTest, Integer[] input, Integer minSize, Integer parallelism) { // return run time
         if (minSize != null) {
             strategyUnderTest.setMinSize(minSize);
         }

@@ -5,8 +5,8 @@ import static mergesort.Utils.merge;
 
 public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
 
-    protected final int MIN_ARRAY_SIZE;
-    protected final int PARALLELISM;
+    protected int MIN_ARRAY_SIZE;
+    protected int PARALLELISM;
     protected final MergeSortStrategy<T> BASE_CASE_STRATEGY;
     protected final int DIVISION_FACTOR = 2;
     protected final int MAX_LEVEL;
@@ -21,7 +21,6 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
 
     protected synchronized void updateNumThreads(int numThreadChange) {
         threadCount += numThreadChange;
-        System.out.println("Thread Count: " + threadCount); //TODO: remove debug
     }
 
     private synchronized boolean requestThreads(int level) {
@@ -100,6 +99,44 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
     public T[] execute(T[] arrToSort) {
         execute(arrToSort, 0, arrToSort.length);
         return arrToSort;
+    }
+
+    @Override
+    public int getMinSize() {
+        return MIN_ARRAY_SIZE;
+    }
+
+    @Override
+    public int getParallelism() {
+        return PARALLELISM;
+    }
+
+    @Override
+    public void setMinSize(int size) {
+        MIN_ARRAY_SIZE = size;
+    }
+
+    @Override
+    public void setParallelism(int parallelism) {
+        PARALLELISM = parallelism;
+    }
+
+    @Override
+    public String toString() {
+        return "MergeSort Threaded | Minimum Array Size = " + MIN_ARRAY_SIZE;
+    }
+
+    @Override
+    public String toString(boolean minSize, boolean parallelism) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("MergeSort Threaded ");
+        if (minSize) {
+            sb.append("| Minimum Array Size = " + MIN_ARRAY_SIZE);
+        }
+        if (parallelism) {
+            sb.append("| Parallelism = " + PARALLELISM + " ");
+        }
+        return sb.toString();
     }
 
 }
