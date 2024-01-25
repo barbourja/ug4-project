@@ -1,14 +1,17 @@
 package fft;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Random;
 
 public class TestSuite {
 
-    public static Long[] testVaryingParallelism(FFTStrategy strategyUnderTest, Integer numInputs, Integer minSize, boolean prettyPrinting) { // return array of average run times
-        ArrayList<Long> averageRuntimes = new ArrayList<>();
-        System.out.println(strategyUnderTest.toString(true, false) + " - Varying parallelism");
+    private static final int NUM_RUNS_PER_INPUT = 5;
+
+    public static Long[] testVaryingParallelism(FFTStrategy strategyUnderTest, Integer inputSize, Integer minSize, boolean prettyPrinting) { // return array of average run times
+        strategyUnderTest.setMinSize(minSize);
+
+        ArrayList<Long> runtimes = new ArrayList<>();
+        System.out.println(strategyUnderTest.toString(true, false) + "| Input Size = " + inputSize + " - Varying parallelism");
 
         int[] valuesToTest = new int[]{1, 2, 4, 8, 16, 32};
 
@@ -17,11 +20,11 @@ public class TestSuite {
         }
 
         for (int parallelism : valuesToTest) {
-            long runtime = testVaryingInputs(strategyUnderTest, numInputs, minSize, parallelism, prettyPrinting);
+            long runtime = testInput(strategyUnderTest, inputSize, null, parallelism);
             if (prettyPrinting) {
-                System.out.print("  |Average runtime: " + runtime + "ms|\n\n");
+                System.out.print("Parallelism = " + parallelism + "  | Average runtime (across " + NUM_RUNS_PER_INPUT + " runs): " + runtime + "ms |\n\n");
             }
-            averageRuntimes.add(runtime);
+            runtimes.add(runtime);
         }
 
         if (!prettyPrinting) { // dump csv
@@ -29,29 +32,30 @@ public class TestSuite {
                 System.out.print(valuesToTest[i] + ",");
             }
             System.out.print(valuesToTest[valuesToTest.length - 1] + "\n");
-            for (int i = 0; i < averageRuntimes.size() - 1; i++) {
-                System.out.print(averageRuntimes.get(i) + ",");
+            for (int i = 0; i < runtimes.size() - 1; i++) {
+                System.out.print(runtimes.get(i) + ",");
             }
-            System.out.print(averageRuntimes.get(averageRuntimes.size() - 1) + "\n");
+            System.out.print(runtimes.get(runtimes.size() - 1) + "\n");
         }
 
-        return averageRuntimes.toArray(new Long[0]);
+        return runtimes.toArray(new Long[0]);
     }
 
-    public static Long[] testVaryingMinSize(FFTStrategy strategyUnderTest, Integer numInputs, Integer parallelism, boolean prettyPrinting) { // return array of average run times
+    public static Long[] testVaryingMinSize(FFTStrategy strategyUnderTest, Integer inputSize, Integer parallelism, boolean prettyPrinting) { // return array of average run times
         parallelism = strategyUnderTest instanceof Sequential ? 1 : parallelism;
+        strategyUnderTest.setParallelism(parallelism);
 
-        ArrayList<Long> averageRuntimes = new ArrayList<>();
-        System.out.println(strategyUnderTest.toString(false, true) + " - Varying minimum input size");
+        ArrayList<Long> runTimes = new ArrayList<>();
+        System.out.println(strategyUnderTest.toString(false, true) + "| Input Size = " + inputSize + " - Varying minimum input size");
 
-        int[] valuesToTest = new int[]{100, 1000, 5000, 10000};
+        int[] valuesToTest = new int[]{1, 10, 100, 1000, 10000};
 
         for (int minSize : valuesToTest) {
-            long runtime = testVaryingInputs(strategyUnderTest, numInputs, minSize, parallelism, prettyPrinting);
+            long runtime = testInput(strategyUnderTest, inputSize, minSize, null);
             if (prettyPrinting) {
-                System.out.printf("\n  |Average runtime: " + runtime + "ms|\n\n");
+                System.out.print("Minimum input size = " + minSize + "  | Average runtime (across " + NUM_RUNS_PER_INPUT + " runs): " + runtime + "ms |\n\n");
             }
-            averageRuntimes.add(runtime);
+            runTimes.add(runtime);
         }
 
         if (!prettyPrinting) { // dump csv
@@ -59,43 +63,28 @@ public class TestSuite {
                 System.out.print(valuesToTest[i] + ",");
             }
             System.out.print(valuesToTest[valuesToTest.length - 1] + "\n");
-            for (int i = 0; i < averageRuntimes.size() - 1; i++) {
-                System.out.print(averageRuntimes.get(i) + ",");
+            for (int i = 0; i < runTimes.size() - 1; i++) {
+                System.out.print(runTimes.get(i) + ",");
             }
-            System.out.print(averageRuntimes.get(averageRuntimes.size() - 1) + "\n");
+            System.out.print(runTimes.get(runTimes.size() - 1) + "\n");
         }
 
-        return averageRuntimes.toArray(new Long[0]);
+        return runTimes.toArray(new Long[0]);
     }
 
-    private static long testVaryingInputs(FFTStrategy strategyUnderTest, Integer numInputs, Integer minSize, Integer parallelism, boolean prettyPrinting) { // return average run time across inputs
-        Random rand = new Random();
-        ArrayList<Complex[]> inputs = new ArrayList<>();
-        for (int i = 0; i < numInputs; i++) {
-            int n = (int) Math.pow(2, i + 9);
-            Complex[] input = new Complex[n];
-            for (int j = 0; j < n; j++) {
+    private static long testInput(FFTStrategy strategyUnderTest, Integer inputSize, Integer minSize, Integer parallelism) { // return average run time across runs of input
+        ArrayList<Long> runtimes = new ArrayList<>();
+        for (int i = 0; i < NUM_RUNS_PER_INPUT; i++) {
+            Random rand = new Random();
+            Complex[] input = new Complex[inputSize];
+            for (int j = 0; j < inputSize; j++) {
                 input[j] = new Complex(rand.nextDouble(), rand.nextDouble());
             }
-            inputs.add(input);
+            runtimes.add(runSimpleTest(strategyUnderTest, input, minSize, parallelism));
         }
-
-        return Math.round(runTestOnInputs(strategyUnderTest, inputs, minSize, parallelism, prettyPrinting));
+        return Math.round(runtimes.stream().mapToDouble(Double::valueOf).average().getAsDouble());
     }
 
-
-    private static double runTestOnInputs(FFTStrategy strategyUnderTest, Collection<Complex[]> inputs, Integer minSize, Integer parallelism, boolean prettyPrinting) { // return average run time across inputs
-        ArrayList<Long> runtimes = new ArrayList<>();
-        for (Complex[] input : inputs) {
-            long runtime = runSimpleTest(strategyUnderTest, input, minSize, parallelism);
-            runtimes.add(runtime);
-            if (prettyPrinting) {
-                printResultAsString(input.length, minSize, parallelism, runtime);
-            }
-        }
-
-        return runtimes.stream().mapToLong(Long::valueOf).average().getAsDouble();
-    }
 
     private static long runSimpleTest(FFTStrategy strategyUnderTest, Complex[] input, Integer minSize, Integer parallelism) { // return run time
         if (minSize != null) {
@@ -111,12 +100,5 @@ public class TestSuite {
         elapsedTime = (System.nanoTime() - startTime) / 1000000; // ms
 
         return elapsedTime;
-    }
-
-    private static void printResultAsString(int inputLength, int minSize, int parallelism, long elapsedTime) {
-        System.out.print("  Input Size: " + inputLength);
-        System.out.print(" | Minimum Input Size: " + minSize);
-        System.out.print(" | Parallelism: " + parallelism);
-        System.out.println(" | Run time: " + elapsedTime + "ms");
     }
 }

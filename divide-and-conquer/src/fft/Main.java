@@ -8,12 +8,15 @@ public class Main {
         FFTStrategy forkJoin = new ForkJoin(1000, 16, sequential);
         FFTStrategy threaded = new Threaded(1000, 16, sequential);
 
-//        TestSuite.testVaryingMinSize(sequential, 10, 16, false);
-//        TestSuite.testVaryingMinSize(forkJoin, 10, 16, false);
-//        TestSuite.testVaryingMinSize(threaded, 10, 16, false);
+        final int N = 20;
+        int inputSize = (int) Math.pow(2, N);
 
-        TestSuite.testVaryingParallelism(sequential, 13, 100, false);
-        TestSuite.testVaryingParallelism(forkJoin, 13, 1000, false);
-        TestSuite.testVaryingParallelism(threaded, 13, 1000, false);
+        TestSuite.testVaryingParallelism(sequential, inputSize, 100, false);
+        TestSuite.testVaryingParallelism(forkJoin, inputSize, 100, false);
+        TestSuite.testVaryingParallelism(threaded, inputSize, 100, false);
+
+//        TestSuite.testVaryingParallelism(sequential, 13, 100, false);
+//        TestSuite.testVaryingParallelism(forkJoin, 13, 1000, false);
+//        TestSuite.testVaryingParallelism(threaded, 13, 1000, false);
     }
 }
