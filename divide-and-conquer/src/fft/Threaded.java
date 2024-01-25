@@ -1,5 +1,7 @@
 package fft;
 
+import java.util.ArrayList;
+
 import static java.lang.Math.floor;
 import static java.lang.Math.log;
 
@@ -26,14 +28,20 @@ public class Threaded implements FFTStrategy{
         threadCount += numThreadChange;
     }
 
-    private synchronized boolean requestThreads(int level) {
-        if ((level < MAX_LEVEL) && (threadCount + DIVISION_FACTOR <= PARALLELISM)) {
+    private synchronized int requestThreads(int level) { // returns number of threads allocated
+        int allocate;
+        if (level < MAX_LEVEL && (threadCount + DIVISION_FACTOR <= PARALLELISM)) { // allocate all requested threads
+            allocate = DIVISION_FACTOR;
             updateNumThreads(DIVISION_FACTOR);
-            return true;
+        }
+        else if (level < MAX_LEVEL && threadCount < PARALLELISM) { // partially fulfil request
+            allocate = PARALLELISM - threadCount;
+            updateNumThreads(allocate);
         }
         else {
-            return false;
+            allocate = 0;
         }
+        return allocate;
     }
 
     private class FFTTask implements Runnable {
@@ -67,9 +75,9 @@ public class Threaded implements FFTStrategy{
             if (n % 2 != 0) {
                 throw new RuntimeException("N must be even to perform FFT!");
             }
-            boolean threaded = requestThreads(CURR_LEVEL);
+            int numThreads = requestThreads(CURR_LEVEL);
 
-            if (baseCondition() || !threaded) { // base case
+            if (baseCondition() || numThreads == 0) { // base case
                 computeDirectly();
             }
             else { // perform fft
@@ -89,17 +97,30 @@ public class Threaded implements FFTStrategy{
 
                 FFTTask evenTask = new FFTTask(f_even, CURR_LEVEL + 1);
                 FFTTask oddTask = new FFTTask(f_odd, CURR_LEVEL + 1);
-                Thread evenThread = new Thread(evenTask);
-                Thread oddThread = new Thread(oddTask);
-                evenThread.start();
-                oddThread.start();
-                try {
-                    evenThread.join();
-                    oddThread.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+
+                if (numThreads == 1) { // restricted to 1 thread
+                    Thread evenThread = new Thread(evenTask);
+                    evenThread.start();
+                    oddTask.run();
+                    try {
+                        evenThread.join();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
-                updateNumThreads(-DIVISION_FACTOR);
+                else { // can use 2 threads
+                    Thread evenThread = new Thread(evenTask);
+                    Thread oddThread = new Thread(oddTask);
+                    evenThread.start();
+                    oddThread.start();
+                    try {
+                        evenThread.join();
+                        oddThread.join();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                updateNumThreads(-numThreads);
 
                 Complex[] F_even = evenTask.getResult();
                 Complex[] F_odd = oddTask.getResult();
