@@ -1,6 +1,7 @@
 package fft;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static java.lang.Math.floor;
 import static java.lang.Math.log;
@@ -30,17 +31,17 @@ public class Threaded implements FFTStrategy{
 
     private synchronized int requestThreads(int level) { // returns number of threads allocated
         int allocate;
-        if (level < MAX_LEVEL && (threadCount + DIVISION_FACTOR <= PARALLELISM)) { // allocate all requested threads
+        int remainingThreads = PARALLELISM - threadCount;
+        if (level < MAX_LEVEL && DIVISION_FACTOR <= remainingThreads) { // allocate all requested threads
             allocate = DIVISION_FACTOR;
-            updateNumThreads(DIVISION_FACTOR);
         }
-        else if (level < MAX_LEVEL && threadCount < PARALLELISM) { // partially fulfil request
-            allocate = PARALLELISM - threadCount;
-            updateNumThreads(allocate);
+        else if (level < MAX_LEVEL && remainingThreads > 0) { // partially fulfil request
+            allocate = remainingThreads;
         }
         else {
-            allocate = 0;
+            return 0;
         }
+        updateNumThreads(allocate);
         return allocate;
     }
 
@@ -98,29 +99,24 @@ public class Threaded implements FFTStrategy{
                 FFTTask evenTask = new FFTTask(f_even, CURR_LEVEL + 1);
                 FFTTask oddTask = new FFTTask(f_odd, CURR_LEVEL + 1);
 
-                if (numThreads == 1) { // restricted to 1 thread
-                    Thread evenThread = new Thread(evenTask);
-                    evenThread.start();
-                    oddTask.run();
+                ArrayList<FFTTask> tasks = new ArrayList<>(List.of(new FFTTask[]{evenTask, oddTask}));
+                ArrayList<Thread> runningThreads = new ArrayList<>();
+                for (int i = 0; i < numThreads; i++) { // begin parallel threads
+                    Thread thread = new Thread(tasks.get(i));
+                    thread.start();
+                    runningThreads.add(thread);
+                }
+                for (int i = numThreads; i < tasks.size(); i++) { // run remaining sequentially
+                    tasks.get(i).run();
+                }
+                for (int i = 0; i < numThreads; i++) { // wait for parallel threads to finish
                     try {
-                        evenThread.join();
+                        runningThreads.get(i).join();
+                        updateNumThreads(-1);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
-                else { // can use 2 threads
-                    Thread evenThread = new Thread(evenTask);
-                    Thread oddThread = new Thread(oddTask);
-                    evenThread.start();
-                    oddThread.start();
-                    try {
-                        evenThread.join();
-                        oddThread.join();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                updateNumThreads(-numThreads);
 
                 Complex[] F_even = evenTask.getResult();
                 Complex[] F_odd = oddTask.getResult();
