@@ -99,7 +99,7 @@ public class Threaded implements FFTStrategy{
                 FFTTask evenTask = new FFTTask(f_even, CURR_LEVEL + 1);
                 FFTTask oddTask = new FFTTask(f_odd, CURR_LEVEL + 1);
 
-                ArrayList<FFTTask> tasks = new ArrayList<>(List.of(new FFTTask[]{evenTask, oddTask}));
+                ArrayList<FFTTask> tasks = new ArrayList<>();
                 tasks.add(evenTask);
                 tasks.add(oddTask);
                 ArrayList<Thread> runningThreads = new ArrayList<>();
