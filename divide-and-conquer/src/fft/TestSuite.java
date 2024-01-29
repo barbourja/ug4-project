@@ -8,19 +8,17 @@ public class TestSuite {
     private static final int NUM_RUNS_PER_INPUT = 5;
 
     public static Long[] testVaryingParallelism(FFTStrategy strategyUnderTest, Integer inputSize, Integer minSize, boolean prettyPrinting) { // return array of average run times
-        strategyUnderTest.setMinSize(minSize);
-
         ArrayList<Long> runtimes = new ArrayList<>();
-        System.out.println(strategyUnderTest.toString(true, false) + "| Input Size = " + inputSize + " - Varying parallelism");
+        System.out.println(strategyUnderTest.toString(true, false) + " | Input Size = " + inputSize + " - Varying parallelism");
 
-        int[] valuesToTest = new int[]{1, 2, 4, 8, 16, 32};
+        int[] valuesToTest = new int[]{1, 2, 4, 8, 16, 32, 64};
 
         if (strategyUnderTest instanceof Sequential) {
             valuesToTest = new int[]{1};
         }
 
         for (int parallelism : valuesToTest) {
-            long runtime = testInput(strategyUnderTest, inputSize, null, parallelism);
+            long runtime = testInput(strategyUnderTest, inputSize, minSize, parallelism);
             if (prettyPrinting) {
                 System.out.print("Parallelism = " + parallelism + "  | Average runtime (across " + NUM_RUNS_PER_INPUT + " runs): " + runtime + "ms |\n\n");
             }
@@ -43,15 +41,13 @@ public class TestSuite {
 
     public static Long[] testVaryingMinSize(FFTStrategy strategyUnderTest, Integer inputSize, Integer parallelism, boolean prettyPrinting) { // return array of average run times
         parallelism = strategyUnderTest instanceof Sequential ? 1 : parallelism;
-        strategyUnderTest.setParallelism(parallelism);
-
         ArrayList<Long> runTimes = new ArrayList<>();
-        System.out.println(strategyUnderTest.toString(false, true) + "| Input Size = " + inputSize + " - Varying minimum input size");
+        System.out.println(strategyUnderTest.toString(false, true) + " | Input Size = " + inputSize + " - Varying minimum input size");
 
         int[] valuesToTest = new int[]{1, 10, 100, 1000, 10000};
 
         for (int minSize : valuesToTest) {
-            long runtime = testInput(strategyUnderTest, inputSize, minSize, null);
+            long runtime = testInput(strategyUnderTest, inputSize, minSize, parallelism);
             if (prettyPrinting) {
                 System.out.print("Minimum input size = " + minSize + "  | Average runtime (across " + NUM_RUNS_PER_INPUT + " runs): " + runtime + "ms |\n\n");
             }

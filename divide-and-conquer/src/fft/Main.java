@@ -15,8 +15,5 @@ public class Main {
         TestSuite.testVaryingParallelism(forkJoin, inputSize, 100, false);
         TestSuite.testVaryingParallelism(threaded, inputSize, 100, false);
 
-//        TestSuite.testVaryingParallelism(sequential, 13, 100, false);
-//        TestSuite.testVaryingParallelism(forkJoin, 13, 1000, false);
-//        TestSuite.testVaryingParallelism(threaded, 13, 1000, false);
     }
 }
