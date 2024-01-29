@@ -1,7 +1,6 @@
 package mergesort;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static java.lang.Math.*;
 import static mergesort.Utils.merge;
@@ -91,11 +90,11 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
                 for (int i = 0; i < numThreads; i++) { // wait for parallel threads to finish
                     try {
                         runningThreads.get(i).join();
-                        updateNumThreads(-1);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
+                updateNumThreads(-numThreads);
                 merge(arrToSort, start, midPoint, end);
             }
         }

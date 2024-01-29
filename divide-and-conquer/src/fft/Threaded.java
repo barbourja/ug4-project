@@ -114,11 +114,12 @@ public class Threaded implements FFTStrategy{
                 for (int i = 0; i < numThreads; i++) { // wait for parallel threads to finish
                     try {
                         runningThreads.get(i).join();
-                        updateNumThreads(-1);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
+                updateNumThreads(-numThreads);
+
 
                 Complex[] F_even = evenTask.getResult();
                 Complex[] F_odd = oddTask.getResult();
