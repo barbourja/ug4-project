@@ -12,7 +12,7 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
     protected int PARALLELISM;
     protected final MergeSortStrategy<T> BASE_CASE_STRATEGY;
     protected final int DIVISION_FACTOR = 2;
-    protected final int MAX_LEVEL;
+    protected int MAX_LEVEL;
     protected int threadCount;
 
     public Threaded(int minArraySize, int parallelism, MergeSortStrategy<T> baseCaseStrategy) {
@@ -135,7 +135,10 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
 
     @Override
     public void setParallelism(int parallelism) {
-        PARALLELISM = parallelism;
+        if (parallelism >= 1) {
+            this.PARALLELISM = parallelism;
+            this.MAX_LEVEL = (int) floor(log((DIVISION_FACTOR - 1) * PARALLELISM)/log(DIVISION_FACTOR));
+        }
     }
 
     @Override

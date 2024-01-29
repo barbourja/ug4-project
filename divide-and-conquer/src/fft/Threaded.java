@@ -12,7 +12,7 @@ public class Threaded implements FFTStrategy{
     protected int PARALLELISM;
     protected final FFTStrategy BASE_CASE_STRATEGY;
     protected final int DIVISION_FACTOR = 2;
-    protected final int MAX_LEVEL;
+    protected int MAX_LEVEL;
     protected int threadCount;
 
     public Threaded(int minSequenceSize, int parallelism, FFTStrategy baseCaseStrategy) {
@@ -170,6 +170,7 @@ public class Threaded implements FFTStrategy{
     public void setParallelism(int parallelism) {
         if (parallelism >= 1) {
             this.PARALLELISM = parallelism;
+            this.MAX_LEVEL = (int) floor(log((DIVISION_FACTOR - 1) * PARALLELISM)/log(DIVISION_FACTOR));
         }
     }
 
