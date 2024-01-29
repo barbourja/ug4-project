@@ -8,6 +8,7 @@ public class TestSuite {
     private static final int NUM_RUNS_PER_INPUT = 5;
 
     public static Long[] testVaryingParallelism(MergeSortStrategy<Integer> strategyUnderTest, Integer inputSize, Integer minSize, boolean prettyPrinting) { // return array of average run times
+        strategyUnderTest.setMinSize(minSize);
         ArrayList<Long> runtimes = new ArrayList<>();
         System.out.println(strategyUnderTest.toString(true, false) + " | Input Size = " + inputSize + " - Varying parallelism");
 
@@ -41,7 +42,7 @@ public class TestSuite {
 
     public static Long[] testVaryingMinSize(MergeSortStrategy<Integer> strategyUnderTest, Integer inputSize, Integer parallelism, boolean prettyPrinting) { // return array of average run times
         parallelism = strategyUnderTest instanceof Sequential ? 1 : parallelism;
-
+        strategyUnderTest.setParallelism(parallelism);
         ArrayList<Long> runtimes = new ArrayList<>();
         System.out.println(strategyUnderTest.toString(false, true) + " | Input Size = " + inputSize + " - Varying minimum input size");
 
