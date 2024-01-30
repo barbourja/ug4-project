@@ -4,11 +4,11 @@ import static quickselect.Utils.random_partition;
 
 public class Threaded<T extends Comparable<T>> implements QuickSelectStrategy<T>{
 
-    protected final int MIN_ARRAY_SIZE;
-    protected final int PARALLELISM;
+    protected int MIN_ARRAY_SIZE;
+    protected int PARALLELISM;
     protected final QuickSelectStrategy<T> BASE_CASE_STRATEGY;
     protected final int DIVISION_FACTOR = 1;
-    protected final int MAX_LEVEL;
+    protected int MAX_LEVEL;
     protected int threadCount;
 
     public Threaded(int minArraySize, int parallelism, QuickSelectStrategy<T> baseCaseStrategy) {
@@ -20,7 +20,6 @@ public class Threaded<T extends Comparable<T>> implements QuickSelectStrategy<T>
 
     private synchronized void updateNumThreads(int numThreadChange) {
         threadCount += numThreadChange;
-        System.out.println("Thread Count: " + threadCount); //TODO: remove debug
     }
 
     private synchronized boolean requestThreads(int level) {
@@ -40,7 +39,7 @@ public class Threaded<T extends Comparable<T>> implements QuickSelectStrategy<T>
         private T res = null;
 
         public QuickSelectTask(T[] searchArr, int start, int end, int k, int currLevel) {
-            if (k < 0 || k > end - start) {
+            if (k < 0 || k > (end - start)) {
                 throw new RuntimeException("Invalid value of k!");
             }
             this.searchArr = searchArr;
@@ -70,18 +69,19 @@ public class Threaded<T extends Comparable<T>> implements QuickSelectStrategy<T>
                 computeDirectly();
             }
             else {
-                k = start + k;
                 int pivotIndex = random_partition(searchArr, start, end);
-                if (pivotIndex == k) {
-                    res = searchArr[k];
+                int adjustedPivotIndex = pivotIndex - start;
+
+                if (adjustedPivotIndex == k) {
+                    res = searchArr[pivotIndex];
                 }
                 else {
                     QuickSelectTask task;
-                    if (k < pivotIndex) {
-                        task = new QuickSelectTask(searchArr, start, pivotIndex - 1, k - start, CURR_LEVEL + 1);
+                    if (k < adjustedPivotIndex) {
+                        task = new QuickSelectTask(searchArr, start, pivotIndex - 1, k, CURR_LEVEL + 1);
                     }
                     else {
-                        task = new QuickSelectTask(searchArr, pivotIndex + 1, end, k - (start + pivotIndex + 1), CURR_LEVEL + 1);
+                        task = new QuickSelectTask(searchArr, pivotIndex + 1, end, k - (adjustedPivotIndex + 1), CURR_LEVEL + 1);
                     }
                     Thread thread = new Thread(task);
                     thread.start();
@@ -114,5 +114,43 @@ public class Threaded<T extends Comparable<T>> implements QuickSelectStrategy<T>
             e.printStackTrace();
         }
         return startTask.getResult();
+    }
+
+    @Override
+    public int getMinSize() {
+        return MIN_ARRAY_SIZE;
+    }
+
+    @Override
+    public int getParallelism() {
+        return PARALLELISM;
+    }
+
+    @Override
+    public void setMinSize(int size) {
+        if (size >= 1) {
+            this.MIN_ARRAY_SIZE = size;
+        }
+    }
+
+    @Override
+    public void setParallelism(int parallelism) {
+        if (parallelism >= 1) {
+            this.PARALLELISM = parallelism;
+            this.MAX_LEVEL = parallelism - 1;
+        }
+    }
+
+    @Override
+    public String toString(boolean minSize, boolean parallelism) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("QuickSelect Threaded ");
+        if (minSize) {
+            sb.append("| Minimum Array Size = " + MIN_ARRAY_SIZE + " ");
+        }
+        if (parallelism) {
+            sb.append("| Parallelism = " + PARALLELISM + " ");
+        }
+        return sb.toString();
     }
 }

@@ -8,7 +8,7 @@ public class Sequential<T extends Comparable<T>> implements QuickSelectStrategy<
 
     protected final int MIN_SEQUENCE_SIZE = 1;
 
-    public Sequential() {} //TODO: fix this algorithm
+    public Sequential() {}
 
     @Override
     public T execute(T[] searchArr, int k) {
@@ -28,11 +28,9 @@ public class Sequential<T extends Comparable<T>> implements QuickSelectStrategy<
             return arr[pivotIndex];
         }
         else if (k < adjustedPivotIndex) {
-//            System.out.println("smaller: k = " + k);
             return execute(arr, start, pivotIndex - 1, k);
         }
         else {
-//            System.out.println("larger: k = " + k + " - " + (adjustedPivotIndex + 1));
             return execute(arr, pivotIndex + 1, end, k - (adjustedPivotIndex + 1));
         }
     }
