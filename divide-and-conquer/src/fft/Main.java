@@ -11,9 +11,10 @@ public class Main {
         final int N = 20;
         int inputSize = (int) Math.pow(2, N);
 
-        TestSuite.testVaryingParallelism(sequential, inputSize, 100, false);
-        TestSuite.testVaryingParallelism(forkJoin, inputSize, 100, false);
-        TestSuite.testVaryingParallelism(threaded, inputSize, 100, false);
+        FFTTestSuite fftTest = new FFTTestSuite(5);
+        fftTest.testVaryingParallelism(sequential, inputSize, 100, true);
+        fftTest.testVaryingParallelism(forkJoin, inputSize, 100, true);
+        fftTest.testVaryingParallelism(threaded, inputSize, 100, true);
 
     }
 }

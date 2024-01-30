@@ -105,6 +105,11 @@ public class ForkJoin implements FFTStrategy {
     }
 
     @Override
+    public boolean isSequential() {
+        return false;
+    }
+
+    @Override
     public String toString() {
         return "ForkJoin | Minimum Sequence Size = " + MIN_SEQUENCE_SIZE + " | Parallelism = " + PARALLELISM;
     }

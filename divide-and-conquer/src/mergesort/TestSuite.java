@@ -3,6 +3,7 @@ package mergesort;
 import java.util.ArrayList;
 import java.util.Random;
 
+@Deprecated
 public class TestSuite {
 
     private static final int NUM_RUNS_PER_INPUT = 5;

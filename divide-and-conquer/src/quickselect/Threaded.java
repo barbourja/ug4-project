@@ -142,6 +142,11 @@ public class Threaded<T extends Comparable<T>> implements QuickSelectStrategy<T>
     }
 
     @Override
+    public boolean isSequential() {
+        return false;
+    }
+
+    @Override
     public String toString(boolean minSize, boolean parallelism) {
         StringBuilder sb = new StringBuilder();
         sb.append("QuickSelect Threaded ");

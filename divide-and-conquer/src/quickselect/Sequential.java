@@ -1,7 +1,5 @@
 package quickselect;
 
-import java.util.Arrays;
-
 import static quickselect.Utils.random_partition;
 
 public class Sequential<T extends Comparable<T>> implements QuickSelectStrategy<T>{
@@ -18,7 +16,6 @@ public class Sequential<T extends Comparable<T>> implements QuickSelectStrategy<
     @Override
     public T execute(T[] arr, int start, int end, int k) { // k in interval [0, (end - start)] i.e doesn't exceed the index bounds of the subarray slice
         if (k < 0 || k > (end - start)) {
-            System.out.println(k);
             throw new RuntimeException("Invalid value of k!");
         }
         int pivotIndex = random_partition(arr, start, end);
@@ -53,6 +50,11 @@ public class Sequential<T extends Comparable<T>> implements QuickSelectStrategy<
     @Override
     public void setParallelism(int parallelism) {
         // sequential - do nothing
+    }
+
+    @Override
+    public boolean isSequential() {
+        return true;
     }
 
     @Override

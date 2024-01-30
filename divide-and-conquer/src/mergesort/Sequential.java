@@ -57,6 +57,11 @@ public class Sequential<T extends Comparable<T>> implements MergeSortStrategy<T>
     }
 
     @Override
+    public boolean isSequential() {
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "MergeSort Sequential | Minimum Array Size = " + MIN_ARRAY_SIZE;
     }

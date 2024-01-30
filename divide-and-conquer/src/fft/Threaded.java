@@ -176,6 +176,11 @@ public class Threaded implements FFTStrategy{
     }
 
     @Override
+    public boolean isSequential() {
+        return false;
+    }
+
+    @Override
     public String toString() {
         return "FFT Threaded | Minimum Sequence Size = " + MIN_SEQUENCE_SIZE + " | Parallelism = " + PARALLELISM;
     }

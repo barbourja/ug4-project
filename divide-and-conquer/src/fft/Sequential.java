@@ -1,6 +1,6 @@
 package fft;
 
-public class Sequential implements FFTStrategy{
+public class Sequential implements FFTStrategy {
 
     protected int MIN_SEQUENCE_SIZE;
 
@@ -75,6 +75,11 @@ public class Sequential implements FFTStrategy{
     @Override
     public void setParallelism(int parallelism) {
         // sequential - do nothing
+    }
+
+    @Override
+    public boolean isSequential() {
+        return true;
     }
 
     @Override

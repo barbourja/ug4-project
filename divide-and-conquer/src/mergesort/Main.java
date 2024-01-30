@@ -10,8 +10,9 @@ public class Main {
         final int N = 20;
         int inputSize = (int) Math.pow(2, N);
 
-        TestSuite.testVaryingParallelism(sequential, inputSize, 100, false);
-        TestSuite.testVaryingParallelism(forkJoin, inputSize, 100, false);
-        TestSuite.testVaryingParallelism(threaded, inputSize, 100, false);
+        MergeSortTestSuite msTest = new MergeSortTestSuite(5);
+        msTest.testVaryingParallelism(sequential, inputSize, 100, true);
+        msTest.testVaryingParallelism(forkJoin, inputSize, 100, true);
+        msTest.testVaryingParallelism(threaded, inputSize, 100, true);
     }
 }
