@@ -1,5 +1,8 @@
 package strassens;
 
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import static java.lang.Math.floor;
 import static java.lang.Math.log;
 
@@ -22,17 +25,25 @@ public class Threaded implements StrassensStrategy{
 
     private synchronized void updateNumThreads(int numThreadChange) {
         threadCount += numThreadChange;
-        System.out.println(threadCount); //TODO: remove debug
     }
 
-    private synchronized boolean requestThreads(int level) {
-        if ((level < MAX_LEVEL) && (threadCount + DIVISION_FACTOR <= PARALLELISM)) {
-            updateNumThreads(DIVISION_FACTOR);
-            return true;
+    private int requestThreads(int level) { // returns number of threads allocated
+        int allocate;
+        int remainingThreads;
+        synchronized (this) {
+            remainingThreads = PARALLELISM - threadCount;
+        }
+        if (level < MAX_LEVEL && DIVISION_FACTOR <= remainingThreads) { // allocate all requested threads
+            allocate = DIVISION_FACTOR;
+        }
+        else if (level < MAX_LEVEL && remainingThreads > 0) { // partially fulfil request
+            allocate = remainingThreads;
         }
         else {
-            return false;
+            return 0;
         }
+        updateNumThreads(allocate);
+        return allocate;
     }
 
     private class strassenMultTask implements Runnable {
@@ -69,9 +80,9 @@ public class Threaded implements StrassensStrategy{
                 throw new RuntimeException("Square/equal assumption doesn't hold!");
             }
 
-            boolean threaded = requestThreads(CURR_LEVEL);
+            int numThreads = requestThreads(CURR_LEVEL);
 
-            if (baseCondition() || !threaded) { // base case
+            if (baseCondition() || numThreads == 0) { // base case
                 computeDirectly();
             }
             else { // perform strassen algorithm
@@ -115,20 +126,41 @@ public class Threaded implements StrassensStrategy{
                                 .subInPlace(mat2Split[3]),
                         resQuadrants[2], CURR_LEVEL + 1); // p5
 
-                Thread[] threads = new Thread[7]; // create a thread for each task and run them
-                for (int i = 0; i < tasks.length; i++) {
-                    threads[i] = new Thread(tasks[i]);
-                    threads[i].start();
-                }
+                Queue<strassenMultTask> taskQueue = new ConcurrentLinkedQueue<>(Arrays.asList(tasks)); // queue the tasks
+                ArrayList<Thread> runningThreads = new ArrayList<>();
 
-                for (Thread runningThread : threads) { // wait for threads to complete
-                    try {
-                        runningThread.join();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+                while (!taskQueue.isEmpty()) {
+                    while (runningThreads.size() < numThreads && !taskQueue.isEmpty()) { // dispatch tasks for execution by available threads
+                        Thread thread = new Thread(taskQueue.remove());
+                        thread.start();
+                        runningThreads.add(thread);
+                    }
+                    if (!taskQueue.isEmpty()) {
+                        taskQueue.remove().run(); // run any remaining task in this thread
+                    }
+                    Iterator<Thread> iterator = runningThreads.iterator();
+                    while (iterator.hasNext()) { // check status of other threads and join if complete
+                        Thread threadToCheck = iterator.next();
+                        if (threadToCheck.getState() == Thread.State.TERMINATED) {
+                            try {
+                                threadToCheck.join();
+                                iterator.remove();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
                 }
-                updateNumThreads(-DIVISION_FACTOR);
+                Iterator<Thread> iterator = runningThreads.iterator();
+                while (iterator.hasNext()) { // join all outstanding threads
+                    try {
+                        iterator.next().join();
+                        iterator.remove();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                updateNumThreads(-numThreads);
 
                 // combining partials (winograd)
                 Matrix p1 = tasks[2].getResult();
@@ -154,14 +186,8 @@ public class Threaded implements StrassensStrategy{
     @Override
     public Matrix execute(Matrix mat1, Matrix mat2, Matrix res) {
         strassenMultTask startTask = new strassenMultTask(mat1, mat2, res, 0);
-        Thread startThread = new Thread(startTask);
         threadCount = 1;
-        startThread.start();
-        try {
-            startThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        startTask.run();
         return startTask.getResult();
     }
 
