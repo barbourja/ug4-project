@@ -1,5 +1,7 @@
 package strassens;
 
+import generic.GenericStrategy;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -199,6 +201,11 @@ public class Threaded implements StrassensStrategy{
     @Override
     public int getParallelism() {
         return PARALLELISM;
+    }
+
+    @Override
+    public GenericStrategy getBaseCaseStrategy() {
+        return BASE_CASE_STRATEGY;
     }
 
     @Override

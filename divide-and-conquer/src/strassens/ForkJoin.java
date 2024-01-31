@@ -1,5 +1,7 @@
 package strassens;
 
+import generic.GenericStrategy;
+
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
 
@@ -124,6 +126,11 @@ public class ForkJoin implements StrassensStrategy{
     @Override
     public int getParallelism() {
         return PARALLELISM;
+    }
+
+    @Override
+    public GenericStrategy getBaseCaseStrategy() {
+        return BASE_CASE_STRATEGY;
     }
 
     @Override

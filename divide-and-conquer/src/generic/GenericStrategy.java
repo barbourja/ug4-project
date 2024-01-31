@@ -5,6 +5,8 @@ public interface GenericStrategy {
 
     int getParallelism();
 
+    GenericStrategy getBaseCaseStrategy();
+
     void setMinSize(int size);
 
     void setParallelism(int parallelism);

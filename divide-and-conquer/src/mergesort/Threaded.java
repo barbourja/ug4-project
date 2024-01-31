@@ -1,5 +1,7 @@
 package mergesort;
 
+import generic.GenericStrategy;
+
 import java.util.ArrayList;
 
 import static java.lang.Math.*;
@@ -119,6 +121,11 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
     @Override
     public int getParallelism() {
         return PARALLELISM;
+    }
+
+    @Override
+    public GenericStrategy getBaseCaseStrategy() {
+        return BASE_CASE_STRATEGY;
     }
 
     @Override

@@ -1,5 +1,7 @@
 package fft;
 
+import generic.GenericStrategy;
+
 public class Sequential implements FFTStrategy {
 
     protected int MIN_SEQUENCE_SIZE;
@@ -65,6 +67,11 @@ public class Sequential implements FFTStrategy {
     @Override
     public int getParallelism() {
         return 1;
+    }
+
+    @Override
+    public GenericStrategy getBaseCaseStrategy() {
+        return null; // no base case strategy
     }
 
     @Override

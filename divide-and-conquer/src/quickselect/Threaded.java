@@ -1,5 +1,7 @@
 package quickselect;
 
+import generic.GenericStrategy;
+
 import static quickselect.Utils.random_partition;
 
 public class Threaded<T extends Comparable<T>> implements QuickSelectStrategy<T>{
@@ -118,6 +120,11 @@ public class Threaded<T extends Comparable<T>> implements QuickSelectStrategy<T>
     @Override
     public int getParallelism() {
         return PARALLELISM;
+    }
+
+    @Override
+    public GenericStrategy getBaseCaseStrategy() {
+        return BASE_CASE_STRATEGY;
     }
 
     @Override

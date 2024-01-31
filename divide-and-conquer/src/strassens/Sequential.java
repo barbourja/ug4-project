@@ -1,5 +1,7 @@
 package strassens;
 
+import generic.GenericStrategy;
+
 public class Sequential implements StrassensStrategy{
 
     protected int MIN_MATRIX_SIZE;
@@ -88,6 +90,12 @@ public class Sequential implements StrassensStrategy{
     public int getParallelism() {
         return 1;
     }
+
+    @Override
+    public GenericStrategy getBaseCaseStrategy() {
+        return null; // no base case strategy
+    }
+
 
     @Override
     public void setMinSize(int size) {

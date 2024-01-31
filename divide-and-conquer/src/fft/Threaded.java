@@ -1,5 +1,7 @@
 package fft;
 
+import generic.GenericStrategy;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -151,6 +153,11 @@ public class Threaded implements FFTStrategy{
     @Override
     public int getParallelism() {
         return PARALLELISM;
+    }
+
+    @Override
+    public GenericStrategy getBaseCaseStrategy() {
+        return BASE_CASE_STRATEGY;
     }
 
     @Override

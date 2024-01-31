@@ -1,5 +1,7 @@
 package mergesort;
 
+import generic.GenericStrategy;
+
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 
@@ -69,6 +71,11 @@ public class ForkJoin<T extends Comparable<T>> implements MergeSortStrategy<T>{
     @Override
     public int getParallelism() {
         return PARALLELISM;
+    }
+
+    @Override
+    public GenericStrategy getBaseCaseStrategy() {
+        return BASE_CASE_STRATEGY;
     }
 
     @Override

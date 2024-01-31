@@ -1,5 +1,7 @@
 package quickselect;
 
+import generic.GenericStrategy;
+
 import static quickselect.Utils.random_partition;
 
 public class Sequential<T extends Comparable<T>> implements QuickSelectStrategy<T>{
@@ -41,6 +43,12 @@ public class Sequential<T extends Comparable<T>> implements QuickSelectStrategy<
     public int getParallelism() {
         return 1;
     }
+
+    @Override
+    public GenericStrategy getBaseCaseStrategy() {
+        return null; // no base case strategy
+    }
+
 
     @Override
     public void setMinSize(int size) {
