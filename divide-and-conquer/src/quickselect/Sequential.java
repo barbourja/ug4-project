@@ -58,11 +58,6 @@ public class Sequential<T extends Comparable<T>> implements QuickSelectStrategy<
     }
 
     @Override
-    public String toString() {
-        return "QuickSelect Sequential | Minimum Array Size = " + MIN_SEQUENCE_SIZE;
-    }
-
-    @Override
     public String toString(boolean minSize, boolean parallelism) {
         StringBuilder sb = new StringBuilder();
         sb.append("QuickSelect Sequential ");

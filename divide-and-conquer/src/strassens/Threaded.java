@@ -5,12 +5,12 @@ import static java.lang.Math.log;
 
 public class Threaded implements StrassensStrategy{
 
-    protected final int MIN_MATRIX_SIZE;
-    protected final int PARALLELISM;
+    protected int MIN_MATRIX_SIZE;
+    protected int PARALLELISM;
     protected final StrassensStrategy BASE_CASE_STRATEGY;
 
     protected final int DIVISION_FACTOR = 7;
-    protected final int MAX_LEVEL;
+    protected int MAX_LEVEL;
     protected int threadCount;
 
     public Threaded(int minMatrixSize, int parallelism, StrassensStrategy baseCaseStrategy) {
@@ -163,5 +163,48 @@ public class Threaded implements StrassensStrategy{
             e.printStackTrace();
         }
         return startTask.getResult();
+    }
+
+    @Override
+    public int getMinSize() {
+        return MIN_MATRIX_SIZE;
+    }
+
+    @Override
+    public int getParallelism() {
+        return PARALLELISM;
+    }
+
+    @Override
+    public void setMinSize(int size) {
+        if (size >= 1) {
+            this.MIN_MATRIX_SIZE = size;
+        }
+    }
+
+    @Override
+    public void setParallelism(int parallelism) {
+        if (parallelism >= 1) {
+            this.PARALLELISM = parallelism;
+            this.MAX_LEVEL = (int) floor(log((DIVISION_FACTOR - 1) * parallelism)/log(DIVISION_FACTOR));
+        }
+    }
+
+    @Override
+    public boolean isSequential() {
+        return false;
+    }
+
+    @Override
+    public String toString(boolean minSize, boolean parallelism) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Strassens Threaded ");
+        if (minSize) {
+            sb.append("| Minimum Matrix Size = " + MIN_MATRIX_SIZE + " ");
+        }
+        if (parallelism) {
+            sb.append("| Parallelism = " + PARALLELISM + " ");
+        }
+        return sb.toString();
     }
 }

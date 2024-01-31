@@ -129,7 +129,9 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
 
     @Override
     public void setMinSize(int size) {
-        MIN_ARRAY_SIZE = size;
+        if (size >= 1) {
+            MIN_ARRAY_SIZE = size;
+        }
     }
 
     @Override
@@ -143,11 +145,6 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
     @Override
     public boolean isSequential() {
         return false;
-    }
-
-    @Override
-    public String toString() {
-        return "MergeSort Threaded | Minimum Array Size = " + MIN_ARRAY_SIZE;
     }
 
     @Override

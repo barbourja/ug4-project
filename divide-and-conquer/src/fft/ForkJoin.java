@@ -110,11 +110,6 @@ public class ForkJoin implements FFTStrategy {
     }
 
     @Override
-    public String toString() {
-        return "ForkJoin | Minimum Sequence Size = " + MIN_SEQUENCE_SIZE + " | Parallelism = " + PARALLELISM;
-    }
-
-    @Override
     public String toString(boolean minSize, boolean parallelism) {
         StringBuilder sb = new StringBuilder();
         sb.append("FFT ForkJoin ");

@@ -48,7 +48,9 @@ public class Sequential<T extends Comparable<T>> implements MergeSortStrategy<T>
 
     @Override
     public void setMinSize(int size) {
-        MIN_ARRAY_SIZE = size;
+        if (size >= 1) {
+            MIN_ARRAY_SIZE = size;
+        }
     }
 
     @Override
@@ -59,11 +61,6 @@ public class Sequential<T extends Comparable<T>> implements MergeSortStrategy<T>
     @Override
     public boolean isSequential() {
         return true;
-    }
-
-    @Override
-    public String toString() {
-        return "MergeSort Sequential | Minimum Array Size = " + MIN_ARRAY_SIZE;
     }
 
     @Override

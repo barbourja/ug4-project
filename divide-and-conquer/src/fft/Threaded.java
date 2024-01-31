@@ -181,11 +181,6 @@ public class Threaded implements FFTStrategy{
     }
 
     @Override
-    public String toString() {
-        return "FFT Threaded | Minimum Sequence Size = " + MIN_SEQUENCE_SIZE + " | Parallelism = " + PARALLELISM;
-    }
-
-    @Override
     public String toString(boolean minSize, boolean parallelism) {
         StringBuilder sb = new StringBuilder();
         sb.append("FFT Threaded ");

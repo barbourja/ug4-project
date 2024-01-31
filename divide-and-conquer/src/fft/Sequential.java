@@ -69,7 +69,9 @@ public class Sequential implements FFTStrategy {
 
     @Override
     public void setMinSize(int size) {
-        this.MIN_SEQUENCE_SIZE = size;
+        if (size >= 1) {
+            this.MIN_SEQUENCE_SIZE = size;
+        }
     }
 
     @Override
@@ -80,11 +82,6 @@ public class Sequential implements FFTStrategy {
     @Override
     public boolean isSequential() {
         return true;
-    }
-
-    @Override
-    public String toString() {
-        return "FFT Sequential | Minimum Sequence Size = " + MIN_SEQUENCE_SIZE;
     }
 
     @Override

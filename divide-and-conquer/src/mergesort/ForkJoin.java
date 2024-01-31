@@ -73,22 +73,21 @@ public class ForkJoin<T extends Comparable<T>> implements MergeSortStrategy<T>{
 
     @Override
     public void setMinSize(int size) {
-        MIN_ARRAY_SIZE = size;
+        if (size >= 1) {
+            MIN_ARRAY_SIZE = size;
+        }
     }
 
     @Override
     public void setParallelism(int parallelism) {
-        PARALLELISM = parallelism;
+        if (parallelism >= 1) {
+            PARALLELISM = parallelism;
+        }
     }
 
     @Override
     public boolean isSequential() {
         return false;
-    }
-
-    @Override
-    public String toString() {
-        return "MergeSort ForkJoin | Minimum Array Size = " + MIN_ARRAY_SIZE;
     }
 
     @Override
