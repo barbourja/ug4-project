@@ -9,17 +9,16 @@ abstract public class GenericTestSuite {
         NUM_RUNS_PER_INPUT = numRunsPerInput;
     }
 
-    public Long[] testVaryingParallelism(GenericStrategy strategyUnderTest, Integer inputSize, Integer minSize, boolean fullPrinting) { // return array of average run times
+    public Long[] testVaryingParallelism(GenericStrategy strategyUnderTest, Integer inputSize, Integer minSize, Integer[] valuesToTest, boolean fullPrinting) { // return array of average run times
+
         strategyUnderTest.setMinSize(minSize);
-        ArrayList<Long> runtimes = new ArrayList<>();
         System.out.println(strategyUnderTest.toString(true, false) + " | Input Size = " + inputSize + " - Varying parallelism");
 
-        int[] valuesToTest = new int[]{1, 2, 4, 8, 16, 32, 64};
-
         if (strategyUnderTest.isSequential()) {
-            valuesToTest = new int[]{1};
+            valuesToTest = new Integer[]{1};
         }
 
+        ArrayList<Long> runtimes = new ArrayList<>();
         for (int parallelism : valuesToTest) {
             long runtime = testInput(strategyUnderTest, inputSize, minSize, parallelism, fullPrinting);
             runtimes.add(runtime);
@@ -41,13 +40,11 @@ abstract public class GenericTestSuite {
         return runtimes.toArray(new Long[0]);
     }
 
-    public Long[] testVaryingMinSize(GenericStrategy strategyUnderTest, Integer inputSize, Integer parallelism, boolean fullPrinting) { // return array of average run times
+    public Long[] testVaryingMinSize(GenericStrategy strategyUnderTest, Integer inputSize, Integer parallelism, Integer[] valuesToTest, boolean fullPrinting) { // return array of average run times
         strategyUnderTest.setParallelism(parallelism);
-        ArrayList<Long> runTimes = new ArrayList<>();
         System.out.println(strategyUnderTest.toString(false, true) + " | Input Size = " + inputSize + " - Varying minimum input size");
 
-        int[] valuesToTest = new int[]{1, 10, 100, 1000, 10000};
-
+        ArrayList<Long> runTimes = new ArrayList<>();
         for (int minSize : valuesToTest) {
             long runtime = testInput(strategyUnderTest, inputSize, minSize, parallelism, fullPrinting);
             runTimes.add(runtime);
