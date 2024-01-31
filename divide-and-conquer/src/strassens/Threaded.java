@@ -29,12 +29,10 @@ public class Threaded implements StrassensStrategy{
         threadCount += numThreadChange;
     }
 
-    private int requestThreads(int level) { // returns number of threads allocated
+    private synchronized int requestThreads(int level) { // returns number of threads allocated
         int allocate;
-        int remainingThreads;
-        synchronized (this) {
-            remainingThreads = PARALLELISM - threadCount;
-        }
+        int remainingThreads = PARALLELISM - threadCount;
+
         if (level < MAX_LEVEL && DIVISION_FACTOR <= remainingThreads) { // allocate all requested threads
             allocate = DIVISION_FACTOR;
         }
