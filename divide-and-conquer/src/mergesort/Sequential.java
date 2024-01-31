@@ -8,6 +8,7 @@ import static mergesort.Utils.merge;
 public class Sequential<T extends Comparable<T>> implements MergeSortStrategy<T>{
 
     protected int MIN_ARRAY_SIZE;
+    protected final int DIVISION_FACTOR = 2;
 
     public Sequential(int minArraySize) {
         this.MIN_ARRAY_SIZE = minArraySize > 0 ? minArraySize : 1;
@@ -46,6 +47,11 @@ public class Sequential<T extends Comparable<T>> implements MergeSortStrategy<T>
     @Override
     public int getParallelism() {
         return 1;
+    }
+
+    @Override
+    public int getDivisionFactor() {
+        return DIVISION_FACTOR;
     }
 
     @Override

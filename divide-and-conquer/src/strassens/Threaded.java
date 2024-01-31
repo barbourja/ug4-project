@@ -204,6 +204,11 @@ public class Threaded implements StrassensStrategy{
     }
 
     @Override
+    public int getDivisionFactor() {
+        return DIVISION_FACTOR;
+    }
+
+    @Override
     public GenericStrategy getBaseCaseStrategy() {
         return BASE_CASE_STRATEGY;
     }

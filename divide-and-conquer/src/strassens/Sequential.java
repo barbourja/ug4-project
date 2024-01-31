@@ -5,6 +5,7 @@ import generic.GenericStrategy;
 public class Sequential implements StrassensStrategy{
 
     protected int MIN_MATRIX_SIZE;
+    protected final int DIVISION_FACTOR = 7;
 
     public Sequential(int minMatrixSize) {
         this.MIN_MATRIX_SIZE = minMatrixSize;
@@ -89,6 +90,11 @@ public class Sequential implements StrassensStrategy{
     @Override
     public int getParallelism() {
         return 1;
+    }
+
+    @Override
+    public int getDivisionFactor() {
+        return DIVISION_FACTOR;
     }
 
     @Override

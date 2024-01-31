@@ -8,6 +8,7 @@ import java.util.concurrent.RecursiveTask;
 public class ForkJoin implements FFTStrategy {
 
     protected int MIN_SEQUENCE_SIZE;
+    protected final int DIVISION_FACTOR = 2;
     protected int PARALLELISM;
     protected final FFTStrategy BASE_CASE_STRATEGY;
 
@@ -90,6 +91,11 @@ public class ForkJoin implements FFTStrategy {
     @Override
     public int getParallelism() {
         return PARALLELISM;
+    }
+
+    @Override
+    public int getDivisionFactor() {
+        return DIVISION_FACTOR;
     }
 
     @Override

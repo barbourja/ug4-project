@@ -123,6 +123,11 @@ public class Threaded<T extends Comparable<T>> implements QuickSelectStrategy<T>
     }
 
     @Override
+    public int getDivisionFactor() {
+        return DIVISION_FACTOR;
+    }
+
+    @Override
     public GenericStrategy getBaseCaseStrategy() {
         return BASE_CASE_STRATEGY;
     }

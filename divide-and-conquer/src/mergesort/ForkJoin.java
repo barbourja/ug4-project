@@ -10,6 +10,7 @@ import static mergesort.Utils.merge;
 public class ForkJoin<T extends Comparable<T>> implements MergeSortStrategy<T>{
 
     protected int MIN_ARRAY_SIZE;
+    protected final int DIVISION_FACTOR = 2;
     protected int PARALLELISM;
     protected final MergeSortStrategy<T> BASE_CASE_STRATEGY;
 
@@ -71,6 +72,11 @@ public class ForkJoin<T extends Comparable<T>> implements MergeSortStrategy<T>{
     @Override
     public int getParallelism() {
         return PARALLELISM;
+    }
+
+    @Override
+    public int getDivisionFactor() {
+        return DIVISION_FACTOR;
     }
 
     @Override

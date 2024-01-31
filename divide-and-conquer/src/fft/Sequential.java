@@ -5,6 +5,7 @@ import generic.GenericStrategy;
 public class Sequential implements FFTStrategy {
 
     protected int MIN_SEQUENCE_SIZE;
+    protected final int DIVISION_FACTOR = 2;
 
     public Sequential(int minSequenceSize) {
         this.MIN_SEQUENCE_SIZE = minSequenceSize;
@@ -67,6 +68,11 @@ public class Sequential implements FFTStrategy {
     @Override
     public int getParallelism() {
         return 1;
+    }
+
+    @Override
+    public int getDivisionFactor() {
+        return DIVISION_FACTOR;
     }
 
     @Override
