@@ -105,14 +105,8 @@ public class Threaded<T extends Comparable<T>> implements QuickSelectStrategy<T>
     @Override
     public T execute(T[] searchArr, int start, int end, int k) {
         QuickSelectTask startTask = new QuickSelectTask(searchArr, start, end, k, 0);
-        Thread thread = new Thread(startTask);
         threadCount = 1;
-        thread.start();
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        startTask.run();
         return startTask.getResult();
     }
 

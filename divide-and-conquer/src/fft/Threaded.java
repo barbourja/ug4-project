@@ -139,14 +139,7 @@ public class Threaded implements FFTStrategy{
     @Override
     public Complex[] execute(Complex[] f) {
         FFTTask startTask = new FFTTask(f, 0);
-        Thread startThread = new Thread(startTask);
-        threadCount = 1;
-        startThread.start();
-        try {
-            startThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        startTask.run();
         return startTask.getResult();
     }
 

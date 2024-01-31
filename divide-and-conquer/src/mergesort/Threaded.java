@@ -101,15 +101,9 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
     }
 
     public void execute(T[] arrToSort, int start, int end) {
-        MergeSortTask startTask = new MergeSortTask(arrToSort, start, end, 0);
-        Thread startThread = new Thread(startTask);
+        MergeSortTask startTask = new MergeSortTask(arrToSort, start, end, 0);;
         threadCount = 1;
-        startThread.start();
-        try {
-            startThread.join();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        startTask.run();
     }
 
     public T[] execute(T[] arrToSort) {
