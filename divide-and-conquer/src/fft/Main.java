@@ -1,42 +1,20 @@
 package fft;
 
-import java.util.Random;
-
 public class Main {
 
     public static void main(String[] args) {
-        Random rand = new Random();
-        int n = (int) Math.pow(2, 18);
-        Complex[] f = new Complex[n];
-        for (int i = 0; i < n; i++) {
-            f[i] = new Complex(rand.nextDouble(), rand.nextDouble());
-        }
-        int minSequenceSize = n/1000;
+        //TODO: sort dependency on sequential in testing
+        FFTStrategy sequential = new Sequential(1000);
+        FFTStrategy forkJoin = new ForkJoin(1000, 16, sequential);
+        FFTStrategy threaded = new Threaded(1000, 16, sequential);
 
-        FFTStrategy sequential = new Sequential(minSequenceSize/4);
-        FFTStrategy forkJoin = new ForkJoin(minSequenceSize, 16, sequential);
-        FFTStrategy threaded = new Threaded(minSequenceSize, 16, sequential);
+        final int N = 20;
+        int inputSize = (int) Math.pow(2, N);
 
-//        System.out.println("Executing sequential...");
-//        long startTime = System.nanoTime();
-//        Complex[] seqResult = sequential.execute(f);
-//        long timeTaken = System.nanoTime() - startTime;
-//        System.out.println((timeTaken/1000000) + " ms");
+        FFTTestSuite fftTest = new FFTTestSuite(5);
+        fftTest.testVaryingParallelism(sequential, inputSize, 100, true);
+        fftTest.testVaryingParallelism(forkJoin, inputSize, 100, true);
+        fftTest.testVaryingParallelism(threaded, inputSize, 100, true);
 
-        System.out.println("Executing fork/join...");
-        long startTime = System.nanoTime();
-        forkJoin.execute(f);
-        long timeTaken = System.nanoTime() - startTime;
-        System.out.println((timeTaken/1000000) + " ms");
-
-        System.out.println("Executing threaded...");
-        startTime = System.nanoTime();
-        threaded.execute(f);
-        timeTaken = System.nanoTime() - startTime;
-        System.out.println((timeTaken/1000000) + " ms");
-
-//        if (!Arrays.equals(seqResult, forkJoinResult)) {
-//            throw new RuntimeException("INCONGRUENT RESULTS!");
-//        }
     }
 }

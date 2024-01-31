@@ -1,8 +1,8 @@
 package fft;
 
-public class Sequential implements FFTStrategy{
+public class Sequential implements FFTStrategy {
 
-    protected final int MIN_SEQUENCE_SIZE;
+    protected int MIN_SEQUENCE_SIZE;
 
     public Sequential(int minSequenceSize) {
         this.MIN_SEQUENCE_SIZE = minSequenceSize;
@@ -55,5 +55,42 @@ public class Sequential implements FFTStrategy{
             }
             return F;
         }
+    }
+
+    @Override
+    public int getMinSize() {
+        return MIN_SEQUENCE_SIZE;
+    }
+
+    @Override
+    public int getParallelism() {
+        return 1;
+    }
+
+    @Override
+    public void setMinSize(int size) {
+        if (size >= 1) {
+            this.MIN_SEQUENCE_SIZE = size;
+        }
+    }
+
+    @Override
+    public void setParallelism(int parallelism) {
+        // sequential - do nothing
+    }
+
+    @Override
+    public boolean isSequential() {
+        return true;
+    }
+
+    @Override
+    public String toString(boolean minSize, boolean parallelism) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("FFT Sequential ");
+        if (minSize) {
+            sb.append("| Minimum Sequence Size = " + MIN_SEQUENCE_SIZE);
+        }
+        return sb.toString();
     }
 }

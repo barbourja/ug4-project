@@ -7,8 +7,8 @@ import static mergesort.Utils.merge;
 
 public class ForkJoin<T extends Comparable<T>> implements MergeSortStrategy<T>{
 
-    protected final int MIN_ARRAY_SIZE;
-    protected final int PARALLELISM;
+    protected int MIN_ARRAY_SIZE;
+    protected int PARALLELISM;
     protected final MergeSortStrategy<T> BASE_CASE_STRATEGY;
 
     public ForkJoin(int minArraySize, int parallelism, MergeSortStrategy<T> baseCaseStrategy) {
@@ -59,5 +59,47 @@ public class ForkJoin<T extends Comparable<T>> implements MergeSortStrategy<T>{
     public T[] execute(T[] arrToSort) {
         execute(arrToSort, 0, arrToSort.length);
         return arrToSort;
+    }
+
+    @Override
+    public int getMinSize() {
+        return MIN_ARRAY_SIZE;
+    }
+
+    @Override
+    public int getParallelism() {
+        return PARALLELISM;
+    }
+
+    @Override
+    public void setMinSize(int size) {
+        if (size >= 1) {
+            MIN_ARRAY_SIZE = size;
+        }
+    }
+
+    @Override
+    public void setParallelism(int parallelism) {
+        if (parallelism >= 1) {
+            PARALLELISM = parallelism;
+        }
+    }
+
+    @Override
+    public boolean isSequential() {
+        return false;
+    }
+
+    @Override
+    public String toString(boolean minSize, boolean parallelism) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("MergeSort ForkJoin ");
+        if (minSize) {
+            sb.append("| Minimum Array Size = " + MIN_ARRAY_SIZE);
+        }
+        if (parallelism) {
+            sb.append("| Parallelism = " + PARALLELISM + " ");
+        }
+        return sb.toString();
     }
 }

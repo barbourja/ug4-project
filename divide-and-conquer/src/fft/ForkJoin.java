@@ -5,11 +5,14 @@ import java.util.concurrent.RecursiveTask;
 
 public class ForkJoin implements FFTStrategy {
 
-    protected final int MIN_SEQUENCE_SIZE;
-    protected final int PARALLELISM;
+    protected int MIN_SEQUENCE_SIZE;
+    protected int PARALLELISM;
     protected final FFTStrategy BASE_CASE_STRATEGY;
 
     public ForkJoin(int minSequenceSize, int parallelism, FFTStrategy baseCaseStrategy) {
+        if (parallelism < 1 || minSequenceSize < 1) {
+            throw new RuntimeException("Parallelism/minimum sequence size cannot be < 1.");
+        }
         this.MIN_SEQUENCE_SIZE = minSequenceSize;
         this.PARALLELISM = parallelism;
         this.BASE_CASE_STRATEGY = baseCaseStrategy;
@@ -75,5 +78,47 @@ public class ForkJoin implements FFTStrategy {
         ForkJoinPool pool = new ForkJoinPool(PARALLELISM);
         pool.execute(task);
         return (Complex[]) task.join();
+    }
+
+    @Override
+    public int getMinSize() {
+        return MIN_SEQUENCE_SIZE;
+    }
+
+    @Override
+    public int getParallelism() {
+        return PARALLELISM;
+    }
+
+    @Override
+    public void setMinSize(int size) {
+        if (size >= 1) {
+            this.MIN_SEQUENCE_SIZE = size;
+        }
+    }
+
+    @Override
+    public void setParallelism(int parallelism) {
+        if (parallelism >= 1) {
+            this.PARALLELISM = parallelism;
+        }
+    }
+
+    @Override
+    public boolean isSequential() {
+        return false;
+    }
+
+    @Override
+    public String toString(boolean minSize, boolean parallelism) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("FFT ForkJoin ");
+        if (minSize) {
+            sb.append("| Minimum Sequence Size = " + MIN_SEQUENCE_SIZE + " ");
+        }
+        if (parallelism) {
+            sb.append("| Parallelism = " + PARALLELISM + " ");
+        }
+        return sb.toString();
     }
 }

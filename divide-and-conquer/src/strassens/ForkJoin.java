@@ -5,8 +5,8 @@ import java.util.concurrent.RecursiveTask;
 
 public class ForkJoin implements StrassensStrategy{
 
-    protected final int MIN_MATRIX_SIZE;
-    protected final int PARALLELISM;
+    protected int MIN_MATRIX_SIZE;
+    protected int PARALLELISM;
     protected final StrassensStrategy BASE_CASE_STRATEGY;
 
     public ForkJoin(int minMatrixSize, int parallelism, StrassensStrategy baseCaseStrategy) {
@@ -114,5 +114,47 @@ public class ForkJoin implements StrassensStrategy{
         ForkJoinPool pool = new ForkJoinPool(PARALLELISM);
         pool.execute(task);
         return (Matrix) task.join();
+    }
+
+    @Override
+    public int getMinSize() {
+        return MIN_MATRIX_SIZE;
+    }
+
+    @Override
+    public int getParallelism() {
+        return PARALLELISM;
+    }
+
+    @Override
+    public void setMinSize(int size) {
+        if (size >= 1) {
+            this.MIN_MATRIX_SIZE = size;
+        }
+    }
+
+    @Override
+    public void setParallelism(int parallelism) {
+        if (parallelism >= 1) {
+            this.PARALLELISM = parallelism;
+        }
+    }
+
+    @Override
+    public boolean isSequential() {
+        return false;
+    }
+
+    @Override
+    public String toString(boolean minSize, boolean parallelism) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Strassens ForkJoin ");
+        if (minSize) {
+            sb.append("| Minimum Matrix Size = " + MIN_MATRIX_SIZE + " ");
+        }
+        if (parallelism) {
+            sb.append("| Parallelism = " + PARALLELISM + " ");
+        }
+        return sb.toString();
     }
 }

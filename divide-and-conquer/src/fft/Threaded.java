@@ -1,18 +1,24 @@
 package fft;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static java.lang.Math.floor;
 import static java.lang.Math.log;
 
 public class Threaded implements FFTStrategy{
 
-    protected final int MIN_SEQUENCE_SIZE;
-    protected final int PARALLELISM;
+    protected int MIN_SEQUENCE_SIZE;
+    protected int PARALLELISM;
     protected final FFTStrategy BASE_CASE_STRATEGY;
     protected final int DIVISION_FACTOR = 2;
-    protected final int MAX_LEVEL;
+    protected int MAX_LEVEL;
     protected int threadCount;
 
     public Threaded(int minSequenceSize, int parallelism, FFTStrategy baseCaseStrategy) {
+        if (parallelism < 1 || minSequenceSize < 1) {
+            throw new RuntimeException("Parallelism/minimum sequence size cannot be < 1.");
+        }
         this.MIN_SEQUENCE_SIZE = minSequenceSize;
         this.PARALLELISM = parallelism;
         this.BASE_CASE_STRATEGY = baseCaseStrategy;
@@ -21,17 +27,22 @@ public class Threaded implements FFTStrategy{
 
     private synchronized void updateNumThreads(int numThreadChange) {
         threadCount += numThreadChange;
-        System.out.println("Thread Count: " + threadCount); //TODO: remove debug
     }
 
-    private synchronized boolean requestThreads(int level) {
-        if ((level < MAX_LEVEL) && (threadCount + DIVISION_FACTOR <= PARALLELISM)) {
-            updateNumThreads(DIVISION_FACTOR);
-            return true;
+    private synchronized int requestThreads(int level) { // returns number of threads allocated
+        int allocate;
+        int remainingThreads = PARALLELISM - threadCount;
+        if (level < MAX_LEVEL && DIVISION_FACTOR <= remainingThreads) { // allocate all requested threads
+            allocate = DIVISION_FACTOR;
+        }
+        else if (level < MAX_LEVEL && remainingThreads > 0) { // partially fulfil request
+            allocate = remainingThreads;
         }
         else {
-            return false;
+            return 0;
         }
+        updateNumThreads(allocate);
+        return allocate;
     }
 
     private class FFTTask implements Runnable {
@@ -65,9 +76,9 @@ public class Threaded implements FFTStrategy{
             if (n % 2 != 0) {
                 throw new RuntimeException("N must be even to perform FFT!");
             }
-            boolean threaded = requestThreads(CURR_LEVEL);
+            int numThreads = requestThreads(CURR_LEVEL);
 
-            if (baseCondition() || !threaded) { // base case
+            if (baseCondition() || numThreads == 0) { // base case
                 computeDirectly();
             }
             else { // perform fft
@@ -87,17 +98,28 @@ public class Threaded implements FFTStrategy{
 
                 FFTTask evenTask = new FFTTask(f_even, CURR_LEVEL + 1);
                 FFTTask oddTask = new FFTTask(f_odd, CURR_LEVEL + 1);
-                Thread evenThread = new Thread(evenTask);
-                Thread oddThread = new Thread(oddTask);
-                evenThread.start();
-                oddThread.start();
-                try {
-                    evenThread.join();
-                    oddThread.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+
+                ArrayList<FFTTask> tasks = new ArrayList<>();
+                tasks.add(evenTask);
+                tasks.add(oddTask);
+                ArrayList<Thread> runningThreads = new ArrayList<>();
+                for (int i = 0; i < numThreads; i++) { // begin parallel threads
+                    Thread thread = new Thread(tasks.get(i));
+                    thread.start();
+                    runningThreads.add(thread);
                 }
-                updateNumThreads(-DIVISION_FACTOR);
+                for (int i = numThreads; i < tasks.size(); i++) { // run remaining sequentially
+                    tasks.get(i).run();
+                }
+                for (int i = 0; i < numThreads; i++) { // wait for parallel threads to finish
+                    try {
+                        runningThreads.get(i).join();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                updateNumThreads(-numThreads);
+
 
                 Complex[] F_even = evenTask.getResult();
                 Complex[] F_odd = oddTask.getResult();
@@ -117,14 +139,50 @@ public class Threaded implements FFTStrategy{
     @Override
     public Complex[] execute(Complex[] f) {
         FFTTask startTask = new FFTTask(f, 0);
-        Thread startThread = new Thread(startTask);
-        threadCount = 1;
-        startThread.start();
-        try {
-            startThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        startTask.run();
         return startTask.getResult();
+    }
+
+    @Override
+    public int getMinSize() {
+        return MIN_SEQUENCE_SIZE;
+    }
+
+    @Override
+    public int getParallelism() {
+        return PARALLELISM;
+    }
+
+    @Override
+    public void setMinSize(int size) {
+        if (size >= 1) {
+            this.MIN_SEQUENCE_SIZE = size;
+        }
+    }
+
+    @Override
+    public void setParallelism(int parallelism) {
+        if (parallelism >= 1) {
+            this.PARALLELISM = parallelism;
+            this.MAX_LEVEL = (int) floor(log((DIVISION_FACTOR - 1) * PARALLELISM)/log(DIVISION_FACTOR));
+        }
+    }
+
+    @Override
+    public boolean isSequential() {
+        return false;
+    }
+
+    @Override
+    public String toString(boolean minSize, boolean parallelism) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("FFT Threaded ");
+        if (minSize) {
+            sb.append("| Minimum Sequence Size = " + MIN_SEQUENCE_SIZE + " ");
+        }
+        if (parallelism) {
+            sb.append("| Parallelism = " + PARALLELISM + " ");
+        }
+        return sb.toString();
     }
 }

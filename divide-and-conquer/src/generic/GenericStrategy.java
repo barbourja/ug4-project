@@ -1,10 +1,6 @@
-package fft;
+package generic;
 
-import generic.GenericStrategy;
-
-public interface FFTStrategy extends GenericStrategy {
-    Complex[] execute(Complex[] f);
-
+public interface GenericStrategy {
     int getMinSize();
 
     int getParallelism();
@@ -14,4 +10,6 @@ public interface FFTStrategy extends GenericStrategy {
     void setParallelism(int parallelism);
 
     String toString(boolean minSize, boolean parallelism);
+
+    boolean isSequential();
 }
