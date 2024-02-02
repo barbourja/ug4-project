@@ -2,6 +2,8 @@ package generic;
 
 import java.util.ArrayList;
 
+import static java.lang.Math.*;
+
 abstract public class GenericTestSuite {
     protected final int NUM_RUNS_PER_INPUT;
 
@@ -9,10 +11,8 @@ abstract public class GenericTestSuite {
         NUM_RUNS_PER_INPUT = numRunsPerInput;
     }
 
-    public Long[] testVaryingParallelism(GenericStrategy strategyUnderTest, Integer inputSize, Integer minSize, Integer[] valuesToTest, boolean fullPrinting) { // return array of average run times
-
-        strategyUnderTest.setMinSize(minSize);
-        System.out.println(strategyUnderTest.toString(true, false) + " | Input Size = " + inputSize + " - Varying parallelism");
+    public Long[] testVaryingParallelism(GenericStrategy strategyUnderTest, Integer inputSize, Integer[] valuesToTest, boolean fullPrinting) { // return array of average run times
+        System.out.println(strategyUnderTest.toString(false, false) + "| Input Size = " + inputSize + " - Varying parallelism");
 
         if (strategyUnderTest.isSequential()) {
             valuesToTest = new Integer[]{1};
@@ -20,6 +20,14 @@ abstract public class GenericTestSuite {
 
         ArrayList<Long> runtimes = new ArrayList<>();
         for (int parallelism : valuesToTest) {
+            int minSize;
+            if (!strategyUnderTest.isSequential()) {
+                int maxLevelReached = (int) ceil(log((strategyUnderTest.getDivisionFactor() - 1) * parallelism) / log(strategyUnderTest.getDivisionFactor()));
+                minSize = (int) ceil(inputSize / pow(strategyUnderTest.getDivisionFactor(), maxLevelReached));
+            }
+            else {
+                minSize = strategyUnderTest.getMinSize();
+            }
             long runtime = testInput(strategyUnderTest, inputSize, minSize, parallelism, fullPrinting);
             runtimes.add(runtime);
         }
