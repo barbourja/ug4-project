@@ -41,7 +41,7 @@ public class Threaded implements FFTStrategy{
             allocate = remainingThreads;
         }
         else {
-            return 0;
+            allocate = 0;
         }
         updateNumThreads(allocate);
         return allocate;
@@ -79,7 +79,6 @@ public class Threaded implements FFTStrategy{
                 throw new RuntimeException("N must be even to perform FFT!");
             }
             int numThreads = requestThreads(CURR_LEVEL);
-
             if (baseCondition() || numThreads == 0) { // base case
                 computeDirectly();
             }
@@ -101,9 +100,7 @@ public class Threaded implements FFTStrategy{
                 FFTTask evenTask = new FFTTask(f_even, CURR_LEVEL + 1);
                 FFTTask oddTask = new FFTTask(f_odd, CURR_LEVEL + 1);
 
-                ArrayList<FFTTask> tasks = new ArrayList<>();
-                tasks.add(evenTask);
-                tasks.add(oddTask);
+                ArrayList<FFTTask> tasks = new ArrayList<>(List.of(evenTask, oddTask));
                 ArrayList<Thread> runningThreads = new ArrayList<>();
                 for (int i = 0; i < numThreads; i++) { // begin parallel threads
                     Thread thread = new Thread(tasks.get(i));
@@ -140,6 +137,7 @@ public class Threaded implements FFTStrategy{
 
     @Override
     public Complex[] execute(Complex[] f) {
+        threadCount = 1;
         FFTTask startTask = new FFTTask(f, 0);
         startTask.run();
         return startTask.getResult();
