@@ -3,18 +3,20 @@ package quickselect;
 public class Main {
 
     public static void main(String[] args) {
-        //TODO: sort dependency on sequential in testing
-        QuickSelectStrategy<Integer> sequential = new Sequential();
-        QuickSelectStrategy<Integer> forkJoin = new ForkJoin(1000, 16, sequential);
-        QuickSelectStrategy<Integer> threaded = new Threaded(1000, 16, sequential);
-
-
-        final int N = 18;
+        // Testing varying parallelism
+        int N = 26;
         int inputSize = (int) Math.pow(2, N);
 
-        QuickSelectTestSuite qsTest = new QuickSelectTestSuite(5);
-        qsTest.testVaryingParallelism(sequential, inputSize, 100, true);
-        qsTest.testVaryingParallelism(forkJoin, inputSize, 100, true);
-        qsTest.testVaryingParallelism(threaded, inputSize, 100, true);
+        Integer[] parallelismValues = new Integer[]{1, 2, 4, 8, 16, 32, 64};
+
+        QuickSelectStrategy<Integer> sequential = new Sequential();
+        QuickSelectStrategy<Integer> forkJoin = new ForkJoin(1, 1, sequential);
+        QuickSelectStrategy<Integer> threaded = new Threaded(1, 1, sequential);
+
+
+        QuickSelectTestSuite quickSelectTest = new QuickSelectTestSuite(10);
+        quickSelectTest.testVaryingParallelism(sequential, inputSize, parallelismValues,true);
+        quickSelectTest.testVaryingParallelism(forkJoin, inputSize,  parallelismValues, true);
+        quickSelectTest.testVaryingParallelism(threaded, inputSize,  parallelismValues, true);
     }
 }

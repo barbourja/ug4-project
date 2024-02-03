@@ -2,17 +2,22 @@ package strassens;
 
 public class Main {
     public static void main(String[] args) {
+        // Testing varying parallelism
+        int N = 11;
+        int inputSize = (int) Math.pow(2, N);
+        int seqMinSize = 32;
 
-        final int N = 2048;
+        Integer[] parallelismValues = new Integer[]{1, 2, 4, 8, 16, 32, 64};
 
-        StrassensStrategy sequential = new Sequential(128);
-        StrassensStrategy forkJoin = new ForkJoin(128, 16, sequential);
-        StrassensStrategy threaded = new Threaded(128, 16, sequential);
+        StrassensStrategy sequential = new Sequential(seqMinSize);
+        StrassensStrategy forkJoin = new ForkJoin(1, 1, sequential);
+        StrassensStrategy threaded = new Threaded(1, 1, sequential);
 
-        StrassensTestSuite strassenTest = new StrassensTestSuite(5);
-        strassenTest.testVaryingParallelism(sequential, N, 128, true);
-        strassenTest.testVaryingParallelism(forkJoin, N, 128, true);
-        strassenTest.testVaryingParallelism(threaded, N, 128, true);
+
+        StrassensTestSuite strassensTest = new StrassensTestSuite(10);
+        strassensTest.testVaryingParallelism(sequential, inputSize, parallelismValues,true);
+        strassensTest.testVaryingParallelism(forkJoin, inputSize,  parallelismValues, true);
+        strassensTest.testVaryingParallelism(threaded, inputSize,  parallelismValues, true);
 
     }
 }

@@ -2,17 +2,21 @@ package mergesort;
 
 public class Main {
     public static void main(String[] args) {
-        //TODO: sort dependency on sequential in testing
-        MergeSortStrategy<Integer> sequential = new Sequential<>(1000);
-        MergeSortStrategy<Integer> forkJoin = new ForkJoin<>(1000, 16, sequential);
-        MergeSortStrategy<Integer> threaded = new Threaded<>(1000, 16, sequential);
-
-        final int N = 20;
+        // Testing varying parallelism
+        int N = 23;
         int inputSize = (int) Math.pow(2, N);
+        int seqMinSize = 8;
 
-        MergeSortTestSuite msTest = new MergeSortTestSuite(5);
-        msTest.testVaryingParallelism(sequential, inputSize, 100, true);
-        msTest.testVaryingParallelism(forkJoin, inputSize, 100, true);
-        msTest.testVaryingParallelism(threaded, inputSize, 100, true);
+        Integer[] parallelismValues = new Integer[]{1, 2, 4, 8, 16, 32, 64};
+
+        MergeSortStrategy<Integer> sequential = new Sequential(seqMinSize);
+        MergeSortStrategy<Integer> forkJoin = new ForkJoin(1, 1, sequential);
+        MergeSortStrategy<Integer> threaded = new Threaded(1, 1, sequential);
+
+
+        MergeSortTestSuite mergeSortTest = new MergeSortTestSuite(10);
+        mergeSortTest.testVaryingParallelism(sequential, inputSize, parallelismValues,true);
+        mergeSortTest.testVaryingParallelism(forkJoin, inputSize,  parallelismValues, true);
+        mergeSortTest.testVaryingParallelism(threaded, inputSize,  parallelismValues, true);
     }
 }
