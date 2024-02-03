@@ -15,11 +15,12 @@ public class Sequential implements FFTStrategy {
         int n = f.length;
         Complex[] F = new Complex[n];
         for (int k = 0; k < n; k++) {
-            F[k] = new Complex(0, 0);
-            for (int i = 0; i < n; i++) {
+            Complex twiddle = new Complex(Math.cos(0), Math.sin(0));
+            F[k] = f[0].mult(twiddle);
+            for (int i = 1; i < n; i++) {
                 double exp_i = (-2 * i * k * Math.PI) / n;
-                Complex twiddle = new Complex(Math.cos(exp_i), Math.sin(exp_i));
-                F[k] = F[k].add(f[i].mult(twiddle));
+                twiddle = new Complex(Math.cos(exp_i), Math.sin(exp_i));
+                F[k] = F[k].mutateFusedMultAdd(f[i], twiddle);
             }
         }
         return F;
