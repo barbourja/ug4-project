@@ -2,7 +2,10 @@ package strassens;
 
 public class Main {
     public static void main(String[] args) {
-        // Testing varying parallelism
+        testParallelism();
+    }
+
+    public static void testParallelism() { // Testing varying parallelism
         int N = 11;
         int inputSize = (int) Math.pow(2, N);
         int seqMinSize = 32;
@@ -18,6 +21,5 @@ public class Main {
         strassensTest.testVaryingParallelism(sequential, inputSize, parallelismValues,true);
         strassensTest.testVaryingParallelism(forkJoin, inputSize,  parallelismValues, true);
         strassensTest.testVaryingParallelism(threaded, inputSize,  parallelismValues, true);
-
     }
 }

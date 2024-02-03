@@ -2,7 +2,10 @@ package mergesort;
 
 public class Main {
     public static void main(String[] args) {
-        // Testing varying parallelism
+        testParallelism();
+    }
+
+    public static void testParallelism() {  // Testing varying parallelism
         int N = 23;
         int inputSize = (int) Math.pow(2, N);
         int seqMinSize = 8;
