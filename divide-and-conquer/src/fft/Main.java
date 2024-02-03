@@ -3,7 +3,10 @@ package fft;
 public class Main {
 
     public static void main(String[] args) {
-        // Testing varying parallelism
+        testParallelism();
+    }
+
+    private static void testParallelism() { // Testing varying parallelism
         int N = 23;
         int inputSize = (int) Math.pow(2, N);
         int seqMinSize = 8;
@@ -19,6 +22,5 @@ public class Main {
         fftTest.testVaryingParallelism(sequential, inputSize, parallelismValues,true);
         fftTest.testVaryingParallelism(forkJoin, inputSize,  parallelismValues, true);
         fftTest.testVaryingParallelism(threaded, inputSize,  parallelismValues, true);
-
     }
 }

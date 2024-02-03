@@ -25,7 +25,7 @@ public class StrassensTestSuite extends GenericTestSuite {
         for (int parallelism : valuesToTest) {
             int minSize;
             if (!strategyUnderTest.isSequential()) {
-                int maxLevelReached = (int) ceil(log((parallelism) / log(2)));
+                int maxLevelReached = (int) ceil(log(parallelism) / log(2));
                 minSize = (int) ceil(inputSize / pow(2, maxLevelReached));
             }
             else {
