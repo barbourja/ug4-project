@@ -10,6 +10,11 @@ import static java.lang.Math.*;
 
 public class QuickSelectTestSuite extends GenericTestSuite {
 
+    private final long SEED = 276866963;
+    private final Random rand = new Random();
+
+    private final int INPUT_DIVISION_FACTOR = 2;
+
     public QuickSelectTestSuite(int numRunsPerInput) {
         super(numRunsPerInput);
     }
@@ -26,8 +31,8 @@ public class QuickSelectTestSuite extends GenericTestSuite {
         for (int parallelism : valuesToTest) {
             int minSize;
             if (!strategyUnderTest.isSequential()) {
-                int maxLevelReached = (int) ceil(log(parallelism) / log(2));
-                minSize = (int) ceil(inputSize / pow(2, maxLevelReached));
+                int maxLevelReached = (int) ceil(log(parallelism) / log(INPUT_DIVISION_FACTOR));
+                minSize = (int) ceil(inputSize / pow(INPUT_DIVISION_FACTOR, maxLevelReached));
             }
             else {
                 minSize = strategyUnderTest.getMinSize();
@@ -58,8 +63,8 @@ public class QuickSelectTestSuite extends GenericTestSuite {
             throw new RuntimeException("Incorrect strategy type passed! Expected QuickSelect!");
         }
         ArrayList<Long> runtimes = new ArrayList<>();
+        rand.setSeed(SEED);
         for (int i = 0; i < NUM_RUNS_PER_INPUT; i++) {
-            Random rand = new Random();
             Integer[] input = new Integer[inputSize];
             for (int j = 0; j < inputSize; j++) {
                 input[j] = rand.nextInt();

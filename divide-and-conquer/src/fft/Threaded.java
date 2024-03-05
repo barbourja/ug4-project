@@ -5,8 +5,7 @@ import generic.GenericStrategy;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.Math.floor;
-import static java.lang.Math.log;
+import static java.lang.Math.*;
 
 public class Threaded implements FFTStrategy{
 

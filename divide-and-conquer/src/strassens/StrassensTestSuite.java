@@ -9,6 +9,12 @@ import java.util.Random;
 import static java.lang.Math.*;
 
 public class StrassensTestSuite extends GenericTestSuite {
+
+    private final long SEED = 1994847393;
+    private final Random rand = new Random();
+
+    private final int DIMENSION_DIVISION_FACTOR = 2;
+
     public StrassensTestSuite(int numRunsPerInput) {
         super(numRunsPerInput);
     }
@@ -25,8 +31,8 @@ public class StrassensTestSuite extends GenericTestSuite {
         for (int parallelism : valuesToTest) {
             int minSize;
             if (!strategyUnderTest.isSequential()) {
-                int maxLevelReached = (int) ceil(log(parallelism) / log(2));
-                minSize = (int) ceil(inputSize / pow(2, maxLevelReached));
+                int maxLevelReached = (int) ceil(log(parallelism) / log(DIMENSION_DIVISION_FACTOR));
+                minSize = (int) ceil(inputSize / pow(DIMENSION_DIVISION_FACTOR, maxLevelReached));
             }
             else {
                 minSize = strategyUnderTest.getMinSize();
@@ -57,8 +63,8 @@ public class StrassensTestSuite extends GenericTestSuite {
             throw new RuntimeException("Incorrect strategy type passed! Expected Strassens!");
         }
         ArrayList<Long> runtimes = new ArrayList<>();
+        rand.setSeed(SEED);
         for (int i = 0; i < NUM_RUNS_PER_INPUT; i++) {
-            Random rand = new Random();
             int[][] input1 = new int[inputSize][inputSize];
             int[][] input2 = new int[inputSize][inputSize];
             for (int row = 0; row < inputSize; row++) {
@@ -89,7 +95,6 @@ public class StrassensTestSuite extends GenericTestSuite {
         if (parallelism != null) {
             strategyUnderTest.setParallelism(parallelism);
         }
-
         long startTime, elapsedTime;
         startTime = System.nanoTime(); // ns
         strategyUnderTest.execute(mat1, mat2, res);

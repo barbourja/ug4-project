@@ -52,6 +52,10 @@ abstract public class GenericTestSuite {
         strategyUnderTest.setParallelism(parallelism);
         System.out.println(strategyUnderTest.toString(false, true) + " | Input Size = " + inputSize + " - Varying minimum input size");
 
+        if (strategyUnderTest.isSequential()) {
+            valuesToTest = new Integer[]{strategyUnderTest.getMinSize()};
+        }
+
         ArrayList<Long> runTimes = new ArrayList<>();
         for (int minSize : valuesToTest) {
             long runtime = testInput(strategyUnderTest, inputSize, minSize, parallelism, fullPrinting);
