@@ -3,8 +3,8 @@ package fft;
 import java.util.Objects;
 
 public class Complex {
-    private final double real;
-    private final double imaginary;
+    private double real;
+    private double imaginary;
 
     public Complex(double real, double imaginary) {
         this.real = real;
@@ -21,6 +21,14 @@ public class Complex {
 
     public Complex mult(Complex other) {
         return new Complex(real * other.real() - imaginary * other.imaginary(), real * other.imaginary() + imaginary * other.real());
+    }
+
+    public Complex mutateFusedMultAdd(Complex other1, Complex other2) {
+        double realMult = other1.real() * other2.real() - other1.real() * other2.imaginary();
+        double imaginaryMult = other1.real() * other2.imaginary() + other1.imaginary() * other2.real();
+        this.real = real + realMult;
+        this.imaginary = imaginary + imaginaryMult;
+        return this;
     }
 
     public Complex pow(double n) {

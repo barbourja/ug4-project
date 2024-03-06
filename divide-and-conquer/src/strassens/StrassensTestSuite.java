@@ -2,14 +2,59 @@ package strassens;
 
 import generic.GenericStrategy;
 import generic.GenericTestSuite;
-import quickselect.QuickSelectStrategy;
 
 import java.util.ArrayList;
 import java.util.Random;
 
+import static java.lang.Math.*;
+
 public class StrassensTestSuite extends GenericTestSuite {
+
+    private final long SEED = 1994847393;
+    private final Random rand = new Random();
+
+    private final int DIMENSION_DIVISION_FACTOR = 2;
+
     public StrassensTestSuite(int numRunsPerInput) {
         super(numRunsPerInput);
+    }
+
+    @Override
+    public Long[] testVaryingParallelism(GenericStrategy strategyUnderTest, Integer inputSize, Integer[] valuesToTest, boolean fullPrinting) { // adjusted minsize calculation as matrix dimension reduces as power of 2
+        System.out.println(strategyUnderTest.toString(false, false) + "| Input Size = " + inputSize + " - Varying parallelism");
+
+        if (strategyUnderTest.isSequential()) {
+            valuesToTest = new Integer[]{1};
+        }
+
+        ArrayList<Long> runtimes = new ArrayList<>();
+        for (int parallelism : valuesToTest) {
+            int minSize;
+            if (!strategyUnderTest.isSequential()) {
+                int maxLevelReached = (int) ceil(log(parallelism) / log(DIMENSION_DIVISION_FACTOR));
+                minSize = (int) ceil(inputSize / pow(DIMENSION_DIVISION_FACTOR, maxLevelReached));
+            }
+            else {
+                minSize = strategyUnderTest.getMinSize();
+            }
+            long runtime = testInput(strategyUnderTest, inputSize, minSize, parallelism, fullPrinting);
+            runtimes.add(runtime);
+        }
+
+        // dump csv
+        System.out.print("  ");
+        for (int i = 0; i < valuesToTest.length - 1; i++) {
+            System.out.print(valuesToTest[i] + ",");
+        }
+        System.out.print(valuesToTest[valuesToTest.length - 1] + "\n");
+
+        System.out.print("  ");
+        for (int i = 0; i < runtimes.size() - 1; i++) {
+            System.out.print(runtimes.get(i) + ",");
+        }
+        System.out.print(runtimes.get(runtimes.size() - 1) + "\n");
+
+        return runtimes.toArray(new Long[0]);
     }
 
     @Override
@@ -18,8 +63,8 @@ public class StrassensTestSuite extends GenericTestSuite {
             throw new RuntimeException("Incorrect strategy type passed! Expected Strassens!");
         }
         ArrayList<Long> runtimes = new ArrayList<>();
+        rand.setSeed(SEED);
         for (int i = 0; i < NUM_RUNS_PER_INPUT; i++) {
-            Random rand = new Random();
             int[][] input1 = new int[inputSize][inputSize];
             int[][] input2 = new int[inputSize][inputSize];
             for (int row = 0; row < inputSize; row++) {
@@ -50,7 +95,6 @@ public class StrassensTestSuite extends GenericTestSuite {
         if (parallelism != null) {
             strategyUnderTest.setParallelism(parallelism);
         }
-
         long startTime, elapsedTime;
         startTime = System.nanoTime(); // ns
         strategyUnderTest.execute(mat1, mat2, res);

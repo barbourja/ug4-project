@@ -1,11 +1,14 @@
 package strassens;
 
+import generic.GenericStrategy;
+
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
 
 public class ForkJoin implements StrassensStrategy{
 
     protected int MIN_MATRIX_SIZE;
+    protected final int DIVISION_FACTOR = 7;
     protected int PARALLELISM;
     protected final StrassensStrategy BASE_CASE_STRATEGY;
 
@@ -124,6 +127,16 @@ public class ForkJoin implements StrassensStrategy{
     @Override
     public int getParallelism() {
         return PARALLELISM;
+    }
+
+    @Override
+    public int getDivisionFactor() {
+        return DIVISION_FACTOR;
+    }
+
+    @Override
+    public GenericStrategy getBaseCaseStrategy() {
+        return BASE_CASE_STRATEGY;
     }
 
     @Override

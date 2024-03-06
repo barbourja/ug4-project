@@ -1,11 +1,14 @@
 package quickselect;
 
+import generic.GenericStrategy;
+
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
 import static quickselect.Utils.random_partition;
 
 public class ForkJoin<T extends Comparable<T>> implements QuickSelectStrategy<T>{
     protected int MIN_ARRAY_SIZE;
+    protected final int DIVISION_FACTOR = 1;
     protected int PARALLELISM;
     protected final QuickSelectStrategy<T> BASE_CASE_STRATEGY;
 
@@ -83,6 +86,16 @@ public class ForkJoin<T extends Comparable<T>> implements QuickSelectStrategy<T>
     @Override
     public int getParallelism() {
         return PARALLELISM;
+    }
+
+    @Override
+    public int getDivisionFactor() {
+        return DIVISION_FACTOR;
+    }
+
+    @Override
+    public GenericStrategy getBaseCaseStrategy() {
+        return BASE_CASE_STRATEGY;
     }
 
     @Override

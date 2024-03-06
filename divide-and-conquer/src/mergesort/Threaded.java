@@ -1,5 +1,7 @@
 package mergesort;
 
+import generic.GenericStrategy;
+
 import java.util.ArrayList;
 
 import static java.lang.Math.*;
@@ -16,9 +18,8 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
 
     public Threaded(int minArraySize, int parallelism, MergeSortStrategy<T> baseCaseStrategy) {
         this.MIN_ARRAY_SIZE = minArraySize > 0 ? minArraySize : 1;
-        this.PARALLELISM = parallelism;
         this.BASE_CASE_STRATEGY = baseCaseStrategy;
-        this.MAX_LEVEL = (int) floor(log((DIVISION_FACTOR - 1) * PARALLELISM)/log(DIVISION_FACTOR));
+        setParallelism(parallelism);
     }
 
     protected synchronized void updateNumThreads(int numThreadChange) {
@@ -118,7 +119,18 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
 
     @Override
     public int getParallelism() {
-        return PARALLELISM;
+        return (PARALLELISM * (DIVISION_FACTOR - 1) + 1)/DIVISION_FACTOR;
+    }
+
+
+    @Override
+    public int getDivisionFactor() {
+        return DIVISION_FACTOR;
+    }
+
+    @Override
+    public GenericStrategy getBaseCaseStrategy() {
+        return BASE_CASE_STRATEGY;
     }
 
     @Override
@@ -131,8 +143,10 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
     @Override
     public void setParallelism(int parallelism) {
         if (parallelism >= 1) {
-            this.PARALLELISM = parallelism;
-            this.MAX_LEVEL = (int) floor(log((DIVISION_FACTOR - 1) * PARALLELISM)/log(DIVISION_FACTOR));
+            int allLeavesNumNodes = parallelism + ((parallelism - 1)/(DIVISION_FACTOR - 1));
+            int allLeavesMaxLevel = (int) floor(log((DIVISION_FACTOR - 1) * allLeavesNumNodes)/log(DIVISION_FACTOR));
+            this.PARALLELISM = allLeavesNumNodes;
+            this.MAX_LEVEL = allLeavesMaxLevel;
         }
     }
 
@@ -149,7 +163,7 @@ public class Threaded<T extends Comparable<T>> implements MergeSortStrategy<T>{
             sb.append("| Minimum Array Size = " + MIN_ARRAY_SIZE);
         }
         if (parallelism) {
-            sb.append("| Parallelism = " + PARALLELISM + " ");
+            sb.append("| Parallelism = " + getParallelism() + " ");
         }
         return sb.toString();
     }

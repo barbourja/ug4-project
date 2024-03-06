@@ -1,8 +1,11 @@
 package fft;
 
+import generic.GenericStrategy;
+
 public class Sequential implements FFTStrategy {
 
     protected int MIN_SEQUENCE_SIZE;
+    protected final int DIVISION_FACTOR = 2;
 
     public Sequential(int minSequenceSize) {
         this.MIN_SEQUENCE_SIZE = minSequenceSize;
@@ -12,11 +15,12 @@ public class Sequential implements FFTStrategy {
         int n = f.length;
         Complex[] F = new Complex[n];
         for (int k = 0; k < n; k++) {
-            F[k] = new Complex(0, 0);
-            for (int i = 0; i < n; i++) {
+            Complex twiddle = new Complex(Math.cos(0), Math.sin(0));
+            F[k] = f[0].mult(twiddle);
+            for (int i = 1; i < n; i++) {
                 double exp_i = (-2 * i * k * Math.PI) / n;
-                Complex twiddle = new Complex(Math.cos(exp_i), Math.sin(exp_i));
-                F[k] = F[k].add(f[i].mult(twiddle));
+                twiddle = new Complex(Math.cos(exp_i), Math.sin(exp_i));
+                F[k] = F[k].mutateFusedMultAdd(f[i], twiddle);
             }
         }
         return F;
@@ -65,6 +69,16 @@ public class Sequential implements FFTStrategy {
     @Override
     public int getParallelism() {
         return 1;
+    }
+
+    @Override
+    public int getDivisionFactor() {
+        return DIVISION_FACTOR;
+    }
+
+    @Override
+    public GenericStrategy getBaseCaseStrategy() {
+        return null; // no base case strategy
     }
 
     @Override

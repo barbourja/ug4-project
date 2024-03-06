@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class MergeSortTestSuite extends GenericTestSuite {
+
+    private final long SEED = 1405214844;
+    private final Random rand = new Random();
     public MergeSortTestSuite(int numRunsPerInput) {
         super(numRunsPerInput);
     }
@@ -18,8 +21,8 @@ public class MergeSortTestSuite extends GenericTestSuite {
         }
 
         ArrayList<Long> runtimes = new ArrayList<>();
+        rand.setSeed(SEED);
         for (int i = 0; i < NUM_RUNS_PER_INPUT; i++) {
-            Random rand = new Random();
             Integer[] input = new Integer[inputSize];
             for (int j = 0; j < inputSize; j++) {
                 input[j] = rand.nextInt();

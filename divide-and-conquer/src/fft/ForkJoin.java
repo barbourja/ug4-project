@@ -1,11 +1,14 @@
 package fft;
 
+import generic.GenericStrategy;
+
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
 
 public class ForkJoin implements FFTStrategy {
 
     protected int MIN_SEQUENCE_SIZE;
+    protected final int DIVISION_FACTOR = 2;
     protected int PARALLELISM;
     protected final FFTStrategy BASE_CASE_STRATEGY;
 
@@ -88,6 +91,16 @@ public class ForkJoin implements FFTStrategy {
     @Override
     public int getParallelism() {
         return PARALLELISM;
+    }
+
+    @Override
+    public int getDivisionFactor() {
+        return DIVISION_FACTOR;
+    }
+
+    @Override
+    public GenericStrategy getBaseCaseStrategy() {
+        return BASE_CASE_STRATEGY;
     }
 
     @Override

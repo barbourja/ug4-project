@@ -6,10 +6,55 @@ import generic.GenericTestSuite;
 import java.util.ArrayList;
 import java.util.Random;
 
+import static java.lang.Math.*;
+
 public class QuickSelectTestSuite extends GenericTestSuite {
+
+    private final long SEED = 276866963;
+    private final Random rand = new Random();
+
+    private final int INPUT_DIVISION_FACTOR = 2;
 
     public QuickSelectTestSuite(int numRunsPerInput) {
         super(numRunsPerInput);
+    }
+
+    @Override
+    public Long[] testVaryingParallelism(GenericStrategy strategyUnderTest, Integer inputSize, Integer[] valuesToTest, boolean fullPrinting) { // adjusted minsize calculation to allow parallel algorithms to create all/more threads
+        System.out.println(strategyUnderTest.toString(false, false) + "| Input Size = " + inputSize + " - Varying parallelism");
+
+        if (strategyUnderTest.isSequential()) {
+            valuesToTest = new Integer[]{1};
+        }
+
+        ArrayList<Long> runtimes = new ArrayList<>();
+        for (int parallelism : valuesToTest) {
+            int minSize;
+            if (!strategyUnderTest.isSequential()) {
+                int maxLevelReached = (int) ceil(log(parallelism) / log(INPUT_DIVISION_FACTOR));
+                minSize = (int) ceil(inputSize / pow(INPUT_DIVISION_FACTOR, maxLevelReached));
+            }
+            else {
+                minSize = strategyUnderTest.getMinSize();
+            }
+            long runtime = testInput(strategyUnderTest, inputSize, minSize, parallelism, fullPrinting);
+            runtimes.add(runtime);
+        }
+
+        // dump csv
+        System.out.print("  ");
+        for (int i = 0; i < valuesToTest.length - 1; i++) {
+            System.out.print(valuesToTest[i] + ",");
+        }
+        System.out.print(valuesToTest[valuesToTest.length - 1] + "\n");
+
+        System.out.print("  ");
+        for (int i = 0; i < runtimes.size() - 1; i++) {
+            System.out.print(runtimes.get(i) + ",");
+        }
+        System.out.print(runtimes.get(runtimes.size() - 1) + "\n");
+
+        return runtimes.toArray(new Long[0]);
     }
 
     @Override
@@ -18,8 +63,8 @@ public class QuickSelectTestSuite extends GenericTestSuite {
             throw new RuntimeException("Incorrect strategy type passed! Expected QuickSelect!");
         }
         ArrayList<Long> runtimes = new ArrayList<>();
+        rand.setSeed(SEED);
         for (int i = 0; i < NUM_RUNS_PER_INPUT; i++) {
-            Random rand = new Random();
             Integer[] input = new Integer[inputSize];
             for (int j = 0; j < inputSize; j++) {
                 input[j] = rand.nextInt();
