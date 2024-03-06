@@ -20,9 +20,8 @@ public class Threaded implements StrassensStrategy{
 
     public Threaded(int minMatrixSize, int parallelism, StrassensStrategy baseCaseStrategy) {
         this.MIN_MATRIX_SIZE = minMatrixSize;
-        this.PARALLELISM = parallelism;
         this.BASE_CASE_STRATEGY = baseCaseStrategy;
-        this.MAX_LEVEL = (int) floor(log((DIVISION_FACTOR - 1) * PARALLELISM)/log(DIVISION_FACTOR));
+        setParallelism(parallelism);
     }
 
     private synchronized void updateNumThreads(int numThreadChange) {
@@ -198,7 +197,7 @@ public class Threaded implements StrassensStrategy{
 
     @Override
     public int getParallelism() {
-        return PARALLELISM;
+        return (PARALLELISM * (DIVISION_FACTOR - 1) + 1)/DIVISION_FACTOR;
     }
 
     @Override
@@ -221,8 +220,10 @@ public class Threaded implements StrassensStrategy{
     @Override
     public void setParallelism(int parallelism) {
         if (parallelism >= 1) {
-            this.PARALLELISM = parallelism;
-            this.MAX_LEVEL = (int) floor(log((DIVISION_FACTOR - 1) * parallelism)/log(DIVISION_FACTOR));
+            int allLeavesNumNodes = parallelism + ((parallelism - 1)/(DIVISION_FACTOR - 1));
+            int allLeavesMaxLevel = (int) floor(log((DIVISION_FACTOR - 1) * allLeavesNumNodes)/log(DIVISION_FACTOR));
+            this.PARALLELISM = allLeavesNumNodes;
+            this.MAX_LEVEL = allLeavesMaxLevel;
         }
     }
 
@@ -239,7 +240,7 @@ public class Threaded implements StrassensStrategy{
             sb.append("| Minimum Matrix Size = " + MIN_MATRIX_SIZE + " ");
         }
         if (parallelism) {
-            sb.append("| Parallelism = " + PARALLELISM + " ");
+            sb.append("| Parallelism = " + getParallelism() + " ");
         }
         return sb.toString();
     }

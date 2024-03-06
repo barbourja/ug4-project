@@ -21,9 +21,8 @@ public class Threaded implements FFTStrategy{
             throw new RuntimeException("Parallelism/minimum sequence size cannot be < 1.");
         }
         this.MIN_SEQUENCE_SIZE = minSequenceSize;
-        this.PARALLELISM = parallelism;
         this.BASE_CASE_STRATEGY = baseCaseStrategy;
-        this.MAX_LEVEL = (int) floor(log((DIVISION_FACTOR - 1) * PARALLELISM)/log(DIVISION_FACTOR));
+        setParallelism(parallelism);
     }
 
     private synchronized void updateNumThreads(int numThreadChange) {
@@ -149,7 +148,7 @@ public class Threaded implements FFTStrategy{
 
     @Override
     public int getParallelism() {
-        return PARALLELISM;
+        return (PARALLELISM * (DIVISION_FACTOR - 1) + 1)/DIVISION_FACTOR;
     }
 
     @Override
@@ -172,8 +171,10 @@ public class Threaded implements FFTStrategy{
     @Override
     public void setParallelism(int parallelism) {
         if (parallelism >= 1) {
-            this.PARALLELISM = parallelism;
-            this.MAX_LEVEL = (int) floor(log((DIVISION_FACTOR - 1) * PARALLELISM)/log(DIVISION_FACTOR));
+            int allLeavesNumNodes = parallelism + ((parallelism - 1)/(DIVISION_FACTOR - 1));
+            int allLeavesMaxLevel = (int) floor(log((DIVISION_FACTOR - 1) * allLeavesNumNodes)/log(DIVISION_FACTOR));
+            this.PARALLELISM = allLeavesNumNodes;
+            this.MAX_LEVEL = allLeavesMaxLevel;
         }
     }
 
@@ -190,7 +191,7 @@ public class Threaded implements FFTStrategy{
             sb.append("| Minimum Sequence Size = " + MIN_SEQUENCE_SIZE + " ");
         }
         if (parallelism) {
-            sb.append("| Parallelism = " + PARALLELISM + " ");
+            sb.append("| Parallelism = " + getParallelism() + " ");
         }
         return sb.toString();
     }

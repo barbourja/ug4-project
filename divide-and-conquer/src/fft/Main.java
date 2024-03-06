@@ -5,7 +5,7 @@ import static java.lang.Math.*;
 public class Main {
 
     public static void main(String[] args) {
-        testParallelism();
+        testMinSize();
     }
 
     private static void testParallelism() { // Testing varying parallelism
