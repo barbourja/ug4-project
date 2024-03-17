@@ -24,7 +24,7 @@ public class Sequential implements StrassensStrategy{
             Matrix[] mat1Split = mat1.quadrantSplit();
             Matrix[] mat2Split = mat2.quadrantSplit();
             Matrix[] resQuadrants = res.quadrantSplit();
-            Matrix[] workingQuadrants = new Matrix[5]; // create 4 working quadrants to make the 8 required to run sequentially (4 working + 4 result)
+            Matrix[] workingQuadrants = new Matrix[4]; // create 4 working quadrants to make the 8 required to run sequentially (4 working + 4 result)
             for (int i = 0; i < workingQuadrants.length; i++) {
                 workingQuadrants[i] = new ConcreteMatrix(new int[dimension/2][dimension/2]);
             }
